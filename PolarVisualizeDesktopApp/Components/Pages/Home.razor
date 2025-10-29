@@ -227,10 +227,10 @@
     {
         if (firstRender)
         {
-            // In MAUI Hybrid, wait a bit for ECharts to load
+
             await Task.Delay(500);
 
-            // Check if ECharts is available
+
             try
             {
                 var hasEcharts = await JSRuntime.InvokeAsync<bool>("eval",
@@ -273,7 +273,6 @@
             // Transform data for chart
             var data = loadResult.Data!;
 
-            // Convert headings based on direction mode and vessel heading
             double[] displayAngles = new double[data.HeadingCount];
             for (int i = 0; i < data.HeadingCount; i++)
             {
@@ -342,7 +341,6 @@
 
     private async Task SaveCase()
     {
-        // Implementation for saving case (to be added)
         await JSRuntime.InvokeVoidAsync("alert", "Save Case functionality to be implemented");
     }
 
@@ -353,11 +351,9 @@
             var imageData = await JSRuntime.InvokeAsync<string>("window.polarChart.exportImage");
             if (!string.IsNullOrEmpty(imageData))
             {
-                // In MAUI, we need to save to file system instead of triggering browser download
+ 
                 await JSRuntime.InvokeVoidAsync("alert",
                     "Image export ready. Feature will save to device storage.");
-
-                // TODO: Implement file save to device storage using MAUI APIs
             }
         }
         catch (Exception ex)

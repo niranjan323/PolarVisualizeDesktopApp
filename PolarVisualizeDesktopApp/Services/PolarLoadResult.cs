@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 
 namespace PolarVisualizeDesktopApp.Services;
 
-/// <summary>
-/// Parameters for loading polar data
-/// </summary>
+
 public class PolarLoadParameters
 {
     public string Draft { get; set; } = "scantling"; // scantling, design, intermediate
@@ -20,9 +18,7 @@ public class PolarLoadParameters
     public double DraftForePeak { get; set; }
 }
 
-/// <summary>
-/// Result of polar data loading operation
-/// </summary>
+
 public class PolarLoadResult
 {
     public bool Success { get; set; }
@@ -34,9 +30,7 @@ public class PolarLoadResult
     public string? FilePath { get; set; }
 }
 
-/// <summary>
-/// Service for locating and loading polar response data files
-/// </summary>
+
 public class PolarService
 {
     private readonly string _dataRootPath;
@@ -47,9 +41,7 @@ public class PolarService
             ?? @"C:\PolarData";
     }
 
-    /// <summary>
-    /// Determines the appropriate draft category based on aft and fore peak drafts
-    /// </summary>
+
     public string DetermineDraft(double draftAftPeak, double draftForePeak,
         double scantlingDraft, double designDraft, double intermediateDraft)
     {
@@ -63,9 +55,6 @@ public class PolarService
             return "intermediate";
     }
 
-    /// <summary>
-    /// Loads polar response data based on specified parameters
-    /// </summary>
     public PolarLoadResult LoadPolarData(PolarLoadParameters parameters)
     {
         var result = new PolarLoadResult();
@@ -111,9 +100,6 @@ public class PolarService
         }
     }
 
-    /// <summary>
-    /// Gets the image file path for a given set of parameters
-    /// </summary>
     public string GetImageFilePath(PolarLoadParameters parameters)
     {
         double fittedGM = Math.Round(parameters.GM * 2) / 2.0;
@@ -129,10 +115,6 @@ public class PolarService
             fileName
         );
     }
-
-    /// <summary>
-    /// Gets available GM values for a specific draft
-    /// </summary>
     public double[] GetAvailableGMValues(string draft)
     {
         try
@@ -162,16 +144,11 @@ public class PolarService
         }
     }
 
-    /// <summary>
-    /// Validates if the data root path exists
-    /// </summary>
+
     public bool ValidateDataPath()
     {
         return Directory.Exists(_dataRootPath);
     }
 
-    /// <summary>
-    /// Gets the configured data root path
-    /// </summary>
     public string GetDataRootPath() => _dataRootPath;
 }

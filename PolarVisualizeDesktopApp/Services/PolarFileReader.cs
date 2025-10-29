@@ -19,18 +19,10 @@ public class ResponseMatrix
     public string SourceFile { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// Reads and parses .bpolar binary files
-/// </summary>
+
 public static class PolarFileReader
 {
-    /// <summary>
-    /// Reads a .bpolar binary file and returns the response matrix
-    /// </summary>
-    /// <param name="filePath">Full path to the .bpolar file</param>
-    /// <returns>ResponseMatrix containing speeds, headings, and roll data</returns>
-    /// <exception cref="FileNotFoundException">Thrown when file doesn't exist</exception>
-    /// <exception cref="InvalidDataException">Thrown when file format is invalid</exception>
+
     public static ResponseMatrix ReadPolarFile(string filePath)
     {
         if (!File.Exists(filePath))
@@ -92,9 +84,6 @@ public static class PolarFileReader
         }
     }
 
-    /// <summary>
-    /// Attempts to read a polar file, returning null if it fails
-    /// </summary>
     public static ResponseMatrix? TryReadPolarFile(string filePath)
     {
         try

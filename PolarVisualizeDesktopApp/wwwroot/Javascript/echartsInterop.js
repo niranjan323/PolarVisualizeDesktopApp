@@ -1,16 +1,7 @@
-// echartsInterop.js - Apache ECharts Integration for Polar Plots
-// For .NET MAUI Hybrid Apps - No module exports needed
-
 window.polarChart = window.polarChart || {};
 
-// Initialize flag
 window.polarChart.initialized = false;
 
-/**
- * Initializes or updates a polar heatmap chart
- * @param {string} containerId - DOM element ID for chart container
- * @param {string|object} chartDataOrJson - Chart data object or JSON string
- */
 window.polarChart.renderChart = function (containerId, chartDataOrJson) {
     console.log('polarChart.renderChart called');
 
@@ -20,18 +11,15 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
         return;
     }
 
-    // Check if ECharts is loaded
     if (typeof echarts === 'undefined') {
         console.error('ECharts library not loaded!');
         return;
     }
 
-    // Dispose existing chart if any
     if (window.polarChart.instance) {
         window.polarChart.instance.dispose();
     }
 
-    // Parse chartData if it's a JSON string (from MAUI)
     let chartData = chartDataOrJson;
     if (typeof chartDataOrJson === 'string') {
         try {
@@ -42,7 +30,6 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
         }
     }
 
-    // Initialize new chart
     const chart = echarts.init(container);
     window.polarChart.instance = chart;
 
@@ -211,10 +198,6 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
     });
 };
 
-/**
- * Exports the current chart as an image
- * @returns {string} Base64 encoded image data URL
- */
 window.polarChart.exportImage = function () {
     if (window.polarChart.instance) {
         return window.polarChart.instance.getDataURL({
@@ -226,9 +209,7 @@ window.polarChart.exportImage = function () {
     return null;
 };
 
-/**
- * Disposes the chart instance
- */
+
 window.polarChart.dispose = function () {
     if (window.polarChart.instance) {
         window.polarChart.instance.dispose();
