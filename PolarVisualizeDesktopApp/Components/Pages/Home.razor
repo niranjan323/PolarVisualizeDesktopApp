@@ -1,0 +1,368 @@
+﻿@page "/"
+@using PolarVisualizeDesktopApp.Services
+@inject PolarService PolarService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Polar Response Visualization</PageTitle>
+
+<div class="container-fluid p-3">
+    <div class="row">
+        <!-- Left Panel - Controls -->
+        <div class="col-md-4 col-lg-3">
+            <div class="card bg-dark text-white">
+                <div class="card-header">
+                    <h5 class="mb-0">Vessel Operation Conditions</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Draft Selection -->
+                    <div class="mb-3">
+                        <label class="form-label">Draft Category</label>
+                        <select class="form-select" @bind="parameters.Draft">
+                            <option value="scantling">Scantling</option>
+                            <option value="design">Design</option>
+                            <option value="intermediate">Intermediate</option>
+                        </select>
+                    </div>
+
+                    <!-- Draft Aft Peak -->
+                    <div class="mb-3">
+                        <label class="form-label">Draft Aft Peak (m)</label>
+                        <input type="number" class="form-control" @bind="parameters.DraftAftPeak"
+                               step="0.1" min="0" max="30" />
+                    </div>
+
+                    <!-- Draft Fore Peak -->
+                    <div class="mb-3">
+                        <label class="form-label">Draft Fore Peak (m)</label>
+                        <input type="number" class="form-control" @bind="parameters.DraftForePeak"
+                               step="0.1" min="0" max="30" />
+                    </div>
+
+                    <!-- GM -->
+                    <div class="mb-3">
+                        <label class="form-label">Metacentric Height, GM (m)</label>
+                        <input type="number" class="form-control" @bind="parameters.GM"
+                               step="0.5" min="0.5" max="10" />
+                    </div>
+
+                    <!-- Heading -->
+                    <div class="mb-3">
+                        <label class="form-label">Heading (degree)</label>
+                        <input type="number" class="form-control" @bind="vesselHeading"
+                               step="1" min="0" max="360" />
+                        <small class="form-text text-muted">Clockwise from North to Bow</small>
+                    </div>
+
+                    <!-- Speed -->
+                    <div class="mb-3">
+                        <label class="form-label">Speed (kn)</label>
+                        <input type="number" class="form-control" @bind="vesselSpeed"
+                               step="0.5" min="0" max="30" />
+                    </div>
+
+                    <!-- Maximum Roll -->
+                    <div class="mb-3">
+                        <label class="form-label">Maximum Allowed Roll Angle (degree)</label>
+                        <input type="number" class="form-control" @bind="maxRollAngle"
+                               step="1" min="0" max="30" />
+                    </div>
+                </div>
+
+                <div class="card-header">
+                    <h5 class="mb-0">Sea State</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Significant Wave Height -->
+                    <div class="mb-3">
+                        <label class="form-label">Significant Wave Height, Hs (m)</label>
+                        <input type="number" class="form-control" @bind="parameters.Hs"
+                               step="0.5" min="0" max="20" />
+                    </div>
+
+                    <!-- Mean Wave Period -->
+                    <div class="mb-3">
+                        <label class="form-label">Mean Wave Period, Tz (s)</label>
+                        <input type="number" class="form-control" @bind="parameters.Tz"
+                               step="0.5" min="0" max="25" />
+                    </div>
+
+                    <!-- Mean Wave Direction -->
+                    <div class="mb-3">
+                        <label class="form-label">Mean Wave Direction (degree)</label>
+                        <input type="number" class="form-control" @bind="waveDirection"
+                               step="1" min="0" max="360" />
+                    </div>
+                </div>
+
+                <div class="card-header">
+                    <h5 class="mb-0">Display Options</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Display Mode -->
+                    <div class="mb-3">
+                        <label class="form-label">Plot Mode</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="plotMode"
+                                   id="modeContinuous" value="continuous" @onchange="@(() => displayMode = "continuous")"
+                                   checked="@(displayMode == "continuous")" />
+                            <label class="form-check-label" for="modeContinuous">
+                                Continuous (10-stage)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="plotMode"
+                                   id="modeTraffic" value="trafficlight" @onchange="@(() => displayMode = "trafficlight")"
+                                   checked="@(displayMode == "trafficlight")" />
+                            <label class="form-check-label" for="modeTraffic">
+                                Traffic Light
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Direction Display -->
+                    <div class="mb-3">
+                        <label class="form-label">Direction</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="dirMode"
+                                   id="dirNorth" value="northup" @onchange="@(() => directionMode = "northup")"
+                                   checked="@(directionMode == "northup")" />
+                            <label class="form-check-label" for="dirNorth">
+                                North Up
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="dirMode"
+                                   id="dirHeads" value="headsup" @onchange="@(() => directionMode = "headsup")"
+                                   checked="@(directionMode == "headsup")" />
+                            <label class="form-check-label" for="dirHeads">
+                                Heads Up
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button class="btn btn-primary w-100 mb-2" @onclick="LoadAndRenderData" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Load & Render
+                    </button>
+                    <button class="btn btn-success w-100 mb-2" @onclick="SaveCase" disabled="@(!hasData)">
+                        Save Case
+                    </button>
+                    <button class="btn btn-info w-100" @onclick="ExportChart" disabled="@(!hasData)">
+                        Export Image
+                    </button>
+                </div>
+            </div>
+
+            <!-- Data Info Panel -->
+            @if (loadResult != null && loadResult.Success)
+            {
+                <div class="card bg-dark text-white mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Polar Diagram Closest to Request</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>Draft:</strong> @parameters.Draft</p>
+                        <p class="mb-1"><strong>GM:</strong> @loadResult.FittedGM.ToString("F1") m</p>
+                        <p class="mb-1"><strong>Hs:</strong> @loadResult.FittedHs.ToString("F1") m</p>
+                        <p class="mb-0"><strong>Tz:</strong> @loadResult.FittedTz.ToString("F1") s</p>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Right Panel - Chart -->
+        <div class="col-md-8 col-lg-9">
+            <div class="card bg-dark text-white h-100">
+                <div class="card-body">
+                    @if (errorMessage != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <strong>Error:</strong> @errorMessage
+                        </div>
+                    }
+
+                    @if (!hasData && errorMessage == null)
+                    {
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <div class="text-center text-muted">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-compass" viewBox="0 0 16 16">
+                                    <path d="M8 16.016a7.5 7.5 0 0 0 1.962-14.74A1 1 0 0 0 9 0H7a1 1 0 0 0-.962 1.276A7.5 7.5 0 0 0 8 16.016zm6.5-7.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z" />
+                                    <path d="m6.94 7.44 4.95-2.83-2.83 4.95-4.949 2.83 2.828-4.95z" />
+                                </svg>
+                                <h4 class="mt-3">No Data Loaded</h4>
+                                <p>Configure parameters and click "Load & Render" to visualize polar response.</p>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div id="polarChartContainer" style="width: 100%; height: 700px;"></div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private PolarLoadParameters parameters = new() { Draft = "scantling", GM = 1.5, Hs = 5.5, Tz = 7.5 };
+    private double vesselHeading = 0;
+    private double vesselSpeed = 10;
+    private double waveDirection = 0;
+    private double maxRollAngle = 15;
+    private string displayMode = "continuous";
+    private string directionMode = "northup";
+
+    private bool isLoading = false;
+    private bool hasData = false;
+    private string? errorMessage = null;
+    private PolarLoadResult? loadResult = null;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // In MAUI Hybrid, wait a bit for ECharts to load
+            await Task.Delay(500);
+
+            // Check if ECharts is available
+            try
+            {
+                var hasEcharts = await JSRuntime.InvokeAsync<bool>("eval",
+                    "typeof window.echarts !== 'undefined' && typeof window.polarChart !== 'undefined'");
+
+                if (!hasEcharts)
+                {
+                    errorMessage = "ECharts library not loaded. Please check your internet connection.";
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"JavaScript initialization error: {ex.Message}";
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task LoadAndRenderData()
+    {
+        isLoading = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            // Load data
+            loadResult = PolarService.LoadPolarData(parameters);
+
+            if (!loadResult.Success)
+            {
+                errorMessage = loadResult.ErrorMessage;
+                hasData = false;
+                return;
+            }
+
+            hasData = true;
+
+            // Transform data for chart
+            var data = loadResult.Data!;
+
+            // Convert headings based on direction mode and vessel heading
+            double[] displayAngles = new double[data.HeadingCount];
+            for (int i = 0; i < data.HeadingCount; i++)
+            {
+                if (directionMode == "northup")
+                {
+                    // North Up: θ = 180 + (α - β)
+                    displayAngles[i] = 180 + (data.Headings[i] - vesselHeading);
+                }
+                else
+                {
+                    // Heads Up: θ = 180 - β
+                    displayAngles[i] = 180 - data.Headings[i];
+                }
+
+                // Normalize to [0, 360)
+                while (displayAngles[i] < 0) displayAngles[i] += 360;
+                while (displayAngles[i] >= 360) displayAngles[i] -= 360;
+            }
+
+            // Prepare chart data as JSON string to avoid serialization issues
+            var chartDataJson = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                angles = displayAngles,
+                radii = data.Speeds,
+                matrix = ConvertTo2DArray(data.MaxRoll),
+                maxRoll = maxRollAngle,
+                mode = displayMode,
+                vesselHeading = directionMode == "northup" ? vesselHeading : 0,
+                vesselSpeed = vesselSpeed,
+                startAngle = 90
+            });
+
+            // Call the global function directly - no module import needed
+            await JSRuntime.InvokeVoidAsync("window.polarChart.renderChart",
+                "polarChartContainer", chartDataJson);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Unexpected error: {ex.Message}";
+            hasData = false;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private double[][] ConvertTo2DArray(double[,] matrix)
+    {
+        int rows = matrix.GetLength(0);
+        int cols = matrix.GetLength(1);
+        double[][] result = new double[rows][];
+
+        for (int i = 0; i < rows; i++)
+        {
+            result[i] = new double[cols];
+            for (int j = 0; j < cols; j++)
+            {
+                result[i][j] = matrix[i, j];
+            }
+        }
+
+        return result;
+    }
+
+    private async Task SaveCase()
+    {
+        // Implementation for saving case (to be added)
+        await JSRuntime.InvokeVoidAsync("alert", "Save Case functionality to be implemented");
+    }
+
+    private async Task ExportChart()
+    {
+        try
+        {
+            var imageData = await JSRuntime.InvokeAsync<string>("window.polarChart.exportImage");
+            if (!string.IsNullOrEmpty(imageData))
+            {
+                // In MAUI, we need to save to file system instead of triggering browser download
+                await JSRuntime.InvokeVoidAsync("alert",
+                    "Image export ready. Feature will save to device storage.");
+
+                // TODO: Implement file save to device storage using MAUI APIs
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Export failed: {ex.Message}");
+        }
+    }
+}
