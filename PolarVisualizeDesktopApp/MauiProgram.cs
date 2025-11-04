@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using PolarVisualizeDesktopApp.Services;
+using Syncfusion.Blazor;
 
 namespace PolarVisualizeDesktopApp
 {
@@ -21,6 +22,13 @@ namespace PolarVisualizeDesktopApp
     		builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();
 #endif
+
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
+                "Ngo9BigBOggjGyl/Vkd+XU9FcVRDX3xNYVF2R2ZJfl56cVJMZVtBNQtUQF1hTH9SdkFiWHtdcnBURmVZWkd3"
+            );
+
+            // Add Syncfusion Blazor service
+            builder.Services.AddSyncfusionBlazor();
 
             // Register Polar Services
             builder.Services.AddSingleton<PolarService>();

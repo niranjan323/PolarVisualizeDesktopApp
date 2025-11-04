@@ -66,6 +66,14 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
     </ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="Syncfusion.Blazor.Charts" Version="27.*" />
+		<PackageReference Include="Syncfusion.Blazor.HeatMap" Version="27.*" />
+		<PackageReference Include="Syncfusion.Blazor.Inputs" Version="27.*" />
+		<PackageReference Include="Syncfusion.Blazor.DropDowns" Version="27.*" />
+		<PackageReference Include="Syncfusion.Blazor.Buttons" Version="27.*" />
+		<PackageReference Include="Syncfusion.Blazor.Themes" Version="27.*" />
+	</ItemGroup>
+	<ItemGroup>
 		<MauiAsset Include="wwwroot\**" LogicalName="wwwroot\%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 

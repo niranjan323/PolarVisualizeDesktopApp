@@ -1,16 +1,476 @@
 ﻿@page "/counter"
+@using PolarVisualizeDesktopApp.Services
+@using Syncfusion.Blazor.Charts
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@inject PolarService PolarService
 
-<h1>Counter</h1>
+<PageTitle>Polar Response Visualization - ABS</PageTitle>
 
-<p role="status">Current count: @currentCount</p>
+<div class="container-fluid p-3">
+    <div class="row">
+        <!-- Left Panel - Controls -->
+        <div class="col-md-4 col-lg-3">
+            <!-- Vessel Operation Conditions -->
+            <div class="param-card">
+                <h6>⚓ Vessel Operation Conditions</h6>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+                <div class="mb-3">
+                    <label class="form-label">Draft Category</label>
+                    <SfDropDownList TValue="string" TItem="string"
+                                    @bind-Value="parameters.Draft"
+                                    DataSource="@draftOptions"
+                                    Placeholder="Select Draft">
+                    </SfDropDownList>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Draft Aft Peak (m)</label>
+                    <SfNumericTextBox TValue="double"
+                                      @bind-Value="parameters.DraftAftPeak"
+                                      Min="0" Max="30" Step="0.1"
+                                      Format="F1"
+                                      ShowSpinButton="true">
+                    </SfNumericTextBox>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Draft Fore Peak (m)</label>
+                    <SfNumericTextBox TValue="double"
+                                      @bind-Value="parameters.DraftForePeak"
+                                      Min="0" Max="30" Step="0.1"
+                                      Format="F1"
+                                      ShowSpinButton="true">
+                    </SfNumericTextBox>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Metacentric Height, GM (m)</label>
+                    <SfNumericTextBox TValue="double"
+                                      @bind-Value="parameters.GM"
+                                      Min="0.5" Max="10" Step="0.5"
+                                      Format="F1"
+                                      ShowSpinButton="true">
+                    </SfNumericTextBox>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Heading (degree)</label>
+                    <SfNumericTextBox TValue="double"
+                                      @bind-Value="vesselHeading"
+                                      Min="0" Max="360" Step="1"
+                                      Format="F0"
+                                      ShowSpinButton="true">
+                    </SfNumericTextBox>
+                    <small class="text-muted">Clockwise from North to Bow</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Speed (kn)</label>
+                    <SfNumericTextBox TValue="double"
+                                      @bind-Value="vesselSpeed"
+                                      Min="0" Max="30" Step="0.5"
+                                      Format="F1"
+                                      ShowSpinButton="true">
+                    </SfNumericTextBox>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Maximum Allowed Roll Angle (degree)</label>
+                    <SfNumericTextBox TValue="double"
+                                      @bind-Value="maxRollAngle"
+                                      Min="0" Max="30" Step="1"
+                                      Format="F0"
+                                      ShowSpinButton="true">
+                    </SfNumericTextBox>
+                </div>
+            </div>
+
+            <!-- Sea State -->
+            <div class="param-card">
+                <h6>🌊 Sea State</h6>
+
+                <div class="mb-3">
+                    <label class="form-label">Significant Wave Height, Hs (m)</label>
+                    <SfNumericTextBox TValue="double"
+                                      @bind-Value="parameters.Hs"
+                                      Min="0" Max="20" Step="0.5"
+                                      Format="F1"
+                                      ShowSpinButton="true">
+                    </SfNumericTextBox>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mean Wave Period, Tz (s)</label>
+                    <SfNumericTextBox TValue="double"
+                                      @bind-Value="parameters.Tz"
+                                      Min="0" Max="25" Step="0.5"
+                                      Format="F1"
+                                      ShowSpinButton="true">
+                    </SfNumericTextBox>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mean Wave Direction (degree)</label>
+                    <SfNumericTextBox TValue="double"
+                                      @bind-Value="waveDirection"
+                                      Min="0" Max="360" Step="1"
+                                      Format="F0"
+                                      ShowSpinButton="true">
+                    </SfNumericTextBox>
+                </div>
+            </div>
+
+            <!-- Display Options -->
+            <div class="param-card">
+                <h6>⚙️ Display Options</h6>
+
+                <div class="mb-3">
+                    <label class="form-label">Plot Mode</label>
+                    <div>
+                        <SfRadioButton Label="Continuous (10-stage)"
+                                       Name="plotMode"
+                                       Value="continuous"
+                                       @bind-Checked="displayMode">
+                        </SfRadioButton>
+                    </div>
+                    <div>
+                        <SfRadioButton Label="Traffic Light"
+                                       Name="plotMode"
+                                       Value="trafficlight"
+                                       @bind-Checked="displayMode">
+                        </SfRadioButton>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Direction</label>
+                    <div>
+                        <SfRadioButton Label="North Up"
+                                       Name="dirMode"
+                                       Value="northup"
+                                       @bind-Checked="directionMode">
+                        </SfRadioButton>
+                    </div>
+                    <div>
+                        <SfRadioButton Label="Heads Up"
+                                       Name="dirMode"
+                                       Value="headsup"
+                                       @bind-Checked="directionMode">
+                        </SfRadioButton>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="param-card">
+                <SfButton IsPrimary="true"
+                          Content="@(isLoading ? "Loading..." : "Load & Render")"
+                          CssClass="e-block mb-2"
+                          Disabled="@isLoading"
+                          OnClick="LoadAndRenderData">
+                </SfButton>
+
+                <SfButton Content="Save Case"
+                          CssClass="e-success e-block mb-2"
+                          Disabled="@(!hasData)"
+                          OnClick="SaveCase">
+                </SfButton>
+
+                <SfButton Content="Export Image"
+                          CssClass="e-info e-block"
+                          Disabled="@(!hasData)"
+                          OnClick="ExportChart">
+                </SfButton>
+            </div>
+
+            <!-- Data Info Panel -->
+            @if (loadResult != null && loadResult.Success)
+            {
+                <div class="param-card">
+                    <h6>📊 Loaded Data</h6>
+                    <p class="mb-1">
+                        <span class="info-badge">Draft: @parameters.Draft</span>
+                    </p>
+                    <p class="mb-1">
+                        <span class="info-badge">GM: @loadResult.FittedGM.ToString("F1") m</span>
+                    </p>
+                    <p class="mb-1">
+                        <span class="info-badge">Hs: @loadResult.FittedHs.ToString("F1") m</span>
+                    </p>
+                    <p class="mb-0">
+                        <span class="info-badge">Tz: @loadResult.FittedTz.ToString("F1") s</span>
+                    </p>
+                </div>
+            }
+        </div>
+
+        <!-- Right Panel - Chart -->
+        <div class="col-md-8 col-lg-9">
+            <div class="chart-container">
+                @if (errorMessage != null)
+                {
+                    <div class="alert-panel">
+                        <strong>⚠️ Error:</strong> @errorMessage
+                    </div>
+                }
+
+                @if (!hasData && errorMessage == null)
+                {
+                    <div class="no-data-message">
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 16.016a7.5 7.5 0 0 0 1.962-14.74A1 1 0 0 0 9 0H7a1 1 0 0 0-.962 1.276A7.5 7.5 0 0 0 8 16.016zm6.5-7.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z" />
+                                <path d="m6.94 7.44 4.95-2.83-2.83 4.95-4.949 2.83 2.828-4.95z" />
+                            </svg>
+                            <h4 class="mt-3">No Data Loaded</h4>
+                            <p>Configure parameters and click "Load & Render"</p>
+                        </div>
+                    </div>
+                }
+                else if (hasData)
+                {
+                    <SfChart Title="Roll Angle (degrees)"
+                            
+                             Background="transparent"
+                             Height="700px">
+
+                        <ChartArea>
+                            <ChartAreaBorder Width="0"></ChartAreaBorder>
+                        </ChartArea>
+
+                        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Double"
+                                           Minimum="0"
+                                           Maximum="360"
+                                           Interval="30"
+                                           LabelFormat="{value}°"
+                                           StartAngle="@startAngle">
+                            <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
+                            <ChartAxisLabelStyle Color="#ffffff"></ChartAxisLabelStyle>
+                        </ChartPrimaryXAxis>
+
+                        <ChartPrimaryYAxis Minimum="0"
+                                           Maximum="@maxSpeed"
+                                           Interval="@speedInterval"
+                                           LabelFormat="{value} kn">
+                            <ChartAxisMajorGridLines Width="1" Color="#333"></ChartAxisMajorGridLines>
+                            <ChartAxisLabelStyle Color="#ffffff"></ChartAxisLabelStyle>
+                        </ChartPrimaryYAxis>
+
+                        <ChartSeriesCollection>
+                            <ChartSeries DataSource="@chartDataPoints"
+                                         XName="Angle"
+                                         YName="Speed"
+                                         Type="ChartSeriesType.Scatter"
+                                         PointColorMapping="Color">
+                                <ChartMarker Height="15" Width="15">
+                                </ChartMarker>
+                            </ChartSeries>
+
+                            @if (vesselSpeed > 0)
+                            {
+                                <ChartSeries DataSource="@vesselMarker"
+                                             XName="Angle"
+                                             YName="Speed"
+                                             Type="ChartSeriesType.Scatter"
+                                             Fill="#ffffff">
+                                    <ChartMarker Height="20" Width="20" Shape="ChartShape.Diamond">
+                                        <ChartMarkerBorder Color="#0066ff" Width="3"></ChartMarkerBorder>
+                                    </ChartMarker>
+                                </ChartSeries>
+                            }
+                        </ChartSeriesCollection>
+
+                        <ChartTooltipSettings Enable="true"
+                                              Format="Heading: ${point.x}°<br/>Speed: ${point.y} kn<br/>Roll: ${point.tooltip}°">
+                        </ChartTooltipSettings>
+
+                        <ChartLegendSettings Visible="false"></ChartLegendSettings>
+                    </SfChart>
+                }
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
-    private int currentCount = 0;
+    // Parameters
+    private PolarLoadParameters parameters = new() { Draft = "scantling", GM = 1.5, Hs = 5.5, Tz = 7.5 };
+    private double vesselHeading = 0;
+    private double vesselSpeed = 10;
+    private double waveDirection = 0;
+    private double maxRollAngle = 15;
+    private string displayMode = "continuous";
+    private string directionMode = "northup";
 
-    private void IncrementCount()
+    // State
+    private bool isLoading = false;
+    private bool hasData = false;
+    private string? errorMessage = null;
+    private PolarLoadResult? loadResult = null;
+
+    // Chart data
+    private List<PolarChartData> chartDataPoints = new();
+    private List<PolarChartData> vesselMarker = new();
+    private double maxSpeed = 20;
+    private double speedInterval = 5;
+    private double startAngle = 90;
+
+    // Dropdown options
+    private List<string> draftOptions = new() { "scantling", "design", "intermediate" };
+
+    // Color palettes
+    private string[] continuousColors = new[]
     {
-        currentCount++;
+        "#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8",
+        "#ffffbf", "#fee090", "#fdae61", "#f46d43", "#d73027", "#a50026"
+    };
+
+    private async Task LoadAndRenderData()
+    {
+        isLoading = true;
+        errorMessage = null;
+        hasData = false;
+        chartDataPoints.Clear();
+        vesselMarker.Clear();
+        StateHasChanged();
+
+        await Task.Delay(100); // Allow UI to update
+
+        try
+        {
+            // Load data
+            loadResult = PolarService.LoadPolarData(parameters);
+
+            if (!loadResult.Success)
+            {
+                errorMessage = loadResult.ErrorMessage;
+                return;
+            }
+
+            var data = loadResult.Data!;
+
+            // Set chart ranges
+            maxSpeed = data.Speeds.Max() * 1.1;
+            speedInterval = Math.Ceiling(maxSpeed / 4);
+            startAngle = 90; // North up
+
+            // Prepare chart data points
+            for (int i = 0; i < data.SpeedCount; i++)
+            {
+                for (int j = 0; j < data.HeadingCount; j++)
+                {
+                    double displayAngle = CalculateDisplayAngle(data.Headings[j]);
+                    double rollValue = data.MaxRoll[i, j];
+                    string color = GetColorForRoll(rollValue);
+
+                    chartDataPoints.Add(new PolarChartData
+                    {
+                        Angle = displayAngle,
+                        Speed = data.Speeds[i],
+                        Roll = rollValue,
+                        Color = color,
+                        Tooltip = rollValue.ToString("F2")
+                    });
+                }
+            }
+
+            // Add vessel marker if speed > 0
+            if (vesselSpeed > 0)
+            {
+                double vesselAngle = directionMode == "northup" ? vesselHeading : 0;
+                vesselMarker.Add(new PolarChartData
+                {
+                    Angle = vesselAngle,
+                    Speed = vesselSpeed,
+                    Roll = 0,
+                    Color = "#ffffff",
+                    Tooltip = "Vessel Position"
+                });
+            }
+
+            hasData = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Unexpected error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private double CalculateDisplayAngle(double headingFromData)
+    {
+        double angle;
+
+        if (directionMode == "northup")
+        {
+            // North Up: θ = 180 + (α - β)
+            angle = 180 + (headingFromData - vesselHeading);
+        }
+        else
+        {
+            // Heads Up: θ = 180 - β
+            angle = 180 - headingFromData;
+        }
+
+        // Normalize to [0, 360)
+        while (angle < 0) angle += 360;
+        while (angle >= 360) angle -= 360;
+
+        return angle;
+    }
+
+    private string GetColorForRoll(double rollValue)
+    {
+        if (displayMode == "trafficlight")
+        {
+            if (rollValue < maxRollAngle - 5)
+                return "#2ecc71"; // Green
+            else if (rollValue < maxRollAngle)
+                return "#f39c12"; // Yellow
+            else
+                return "#e74c3c"; // Red
+        }
+        else // continuous
+        {
+            // Map roll value to color index
+            double ratio = Math.Min(rollValue / maxRollAngle, 1.0);
+            int colorIndex = (int)(ratio * (continuousColors.Length - 1));
+            colorIndex = Math.Max(0, Math.Min(colorIndex, continuousColors.Length - 1));
+            return continuousColors[colorIndex];
+        }
+    }
+
+    private async Task SaveCase()
+    {
+        // TODO: Implement save case functionality
+        errorMessage = "Save Case functionality - To be implemented";
+        StateHasChanged();
+        await Task.Delay(2000);
+        errorMessage = null;
+    }
+
+    private async Task ExportChart()
+    {
+        // TODO: Implement chart export using Syncfusion export functionality
+        errorMessage = "Export functionality - To be implemented";
+        StateHasChanged();
+        await Task.Delay(2000);
+        errorMessage = null;
+    }
+
+    // Data model for chart
+    public class PolarChartData
+    {
+        public double Angle { get; set; }
+        public double Speed { get; set; }
+        public double Roll { get; set; }
+        public string Color { get; set; } = "#ffffff";
+        public string Tooltip { get; set; } = "";
     }
 }
