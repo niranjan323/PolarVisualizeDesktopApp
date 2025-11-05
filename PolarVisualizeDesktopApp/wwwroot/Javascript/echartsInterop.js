@@ -16,8 +16,10 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
         return;
     }
 
+    // Dispose existing chart instance
     if (window.polarChart.instance) {
         window.polarChart.instance.dispose();
+        window.polarChart.instance = null;
     }
 
     let chartData = chartDataOrJson;
@@ -39,48 +41,162 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
     const matrix = chartData.matrix || [];
     const maxRoll = chartData.maxRoll || 30;
     const mode = chartData.mode || 'continuous';
+    const directionMode = chartData.directionMode || 'northup';
     const vesselHeading = chartData.vesselHeading || 0;
     const vesselSpeed = chartData.vesselSpeed || 0;
+    const waveDirection = chartData.waveDirection || 0;
     const startAngle = chartData.startAngle || 90;
 
     console.log('Chart data parsed:', {
         angleCount: angles.length,
         radiiCount: radii.length,
         mode,
-        maxRoll
+        maxRoll,
+        directionMode
     });
 
-    // Prepare data for ECharts
-    const chartDataPoints = [];
-    for (let i = 0; i < radii.length; i++) {
-        for (let j = 0; j < angles.length; j++) {
-            if (matrix[i] && matrix[i][j] !== undefined) {
-                chartDataPoints.push([angles[j], radii[i], matrix[i][j]]);
+    // Create interpolated grid for smooth contours
+    // We need much denser grid to create filled contour appearance
+    const numAngles = 360; // One point per degree for smooth contours
+    const angleStep = 360 / numAngles;
+
+    // Create dense angle array
+    const denseAngles = [];
+    for (let i = 0; i < numAngles; i++) {
+        denseAngles.push(i * angleStep);
+    }
+
+    // Interpolate radii for smoother radial transitions
+    const denseRadii = [];
+    const radialSteps = radii.length * 3; // 3x density
+    const minRadius = Math.min(...radii);
+    const maxRadius = Math.max(...radii);
+    const radialStep = (maxRadius - minRadius) / (radialSteps - 1);
+
+    for (let i = 0; i < radialSteps; i++) {
+        denseRadii.push(minRadius + i * radialStep);
+    }
+
+    // Create interpolation function
+    function interpolateRoll(targetAngle, targetRadius) {
+        // Find nearest angle indices
+        let angleIdx1 = 0;
+        let angleIdx2 = 0;
+        let minAngleDiff = 360;
+
+        for (let i = 0; i < angles.length; i++) {
+            let diff = Math.abs(angles[i] - targetAngle);
+            if (diff > 180) diff = 360 - diff; // Handle wrap-around
+
+            if (diff < minAngleDiff) {
+                minAngleDiff = diff;
+                angleIdx1 = i;
             }
+        }
+
+        // Find second nearest angle
+        minAngleDiff = 360;
+        for (let i = 0; i < angles.length; i++) {
+            if (i === angleIdx1) continue;
+            let diff = Math.abs(angles[i] - targetAngle);
+            if (diff > 180) diff = 360 - diff;
+
+            if (diff < minAngleDiff) {
+                minAngleDiff = diff;
+                angleIdx2 = i;
+            }
+        }
+
+        // Find nearest radius indices
+        let radiusIdx1 = 0;
+        let radiusIdx2 = 0;
+
+        for (let i = 0; i < radii.length - 1; i++) {
+            if (targetRadius >= radii[i] && targetRadius <= radii[i + 1]) {
+                radiusIdx1 = i;
+                radiusIdx2 = i + 1;
+                break;
+            }
+        }
+
+        // If outside range, use nearest
+        if (targetRadius < radii[0]) {
+            radiusIdx1 = radiusIdx2 = 0;
+        } else if (targetRadius > radii[radii.length - 1]) {
+            radiusIdx1 = radiusIdx2 = radii.length - 1;
+        }
+
+        // Bilinear interpolation
+        const r1 = radii[radiusIdx1];
+        const r2 = radii[radiusIdx2];
+        const rFactor = r2 > r1 ? (targetRadius - r1) / (r2 - r1) : 0;
+
+        const v11 = matrix[radiusIdx1] && matrix[radiusIdx1][angleIdx1] !== undefined ? matrix[radiusIdx1][angleIdx1] : 0;
+        const v12 = matrix[radiusIdx1] && matrix[radiusIdx1][angleIdx2] !== undefined ? matrix[radiusIdx1][angleIdx2] : 0;
+        const v21 = matrix[radiusIdx2] && matrix[radiusIdx2][angleIdx1] !== undefined ? matrix[radiusIdx2][angleIdx1] : 0;
+        const v22 = matrix[radiusIdx2] && matrix[radiusIdx2][angleIdx2] !== undefined ? matrix[radiusIdx2][angleIdx2] : 0;
+
+        const v1 = v11 * (1 - rFactor) + v21 * rFactor;
+        const v2 = v12 * (1 - rFactor) + v22 * rFactor;
+
+        // Average between two nearest angles
+        return (v1 + v2) / 2;
+    }
+
+    // Generate dense heatmap data
+    const heatmapData = [];
+
+    for (let i = 0; i < denseRadii.length; i++) {
+        for (let j = 0; j < denseAngles.length; j++) {
+            const rollValue = interpolateRoll(denseAngles[j], denseRadii[i]);
+            // Format: [angle, radius, value]
+            heatmapData.push([denseAngles[j], denseRadii[i], rollValue]);
         }
     }
 
     // Color scale based on mode
     let visualMap;
     if (mode === 'trafficlight') {
+        const greenMax = maxRoll - 5;
+        const yellowMin = maxRoll - 5;
+        const yellowMax = maxRoll;
+        const redMin = maxRoll;
+
         visualMap = {
             type: 'piecewise',
             min: 0,
             max: Math.max(...matrix.flat()),
             calculable: false,
             realtime: false,
-            splitNumber: 3,
             pieces: [
-                { min: 0, max: maxRoll - 5, color: '#2ecc71', label: 'Safe (0-' + (maxRoll - 5) + '°)' },
-                { min: maxRoll - 5, max: maxRoll, color: '#f39c12', label: 'Caution (' + (maxRoll - 5) + '-' + maxRoll + '°)' },
-                { min: maxRoll, color: '#e74c3c', label: 'Danger (>' + maxRoll + '°)' }
+                {
+                    min: 0,
+                    max: greenMax,
+                    color: '#2ecc71',
+                    label: `Safe (0-${greenMax.toFixed(0)}\u00B0)`
+                },
+                {
+                    min: yellowMin,
+                    max: yellowMax,
+                    color: '#f39c12',
+                    label: `Caution (${yellowMin.toFixed(0)}-${yellowMax.toFixed(0)}\u00B0)`
+                },
+                {
+                    min: redMin,
+                    color: '#e74c3c',
+                    label: `Danger (>${redMin.toFixed(0)}\u00B0)`
+                }
             ],
             orient: 'vertical',
             left: 'left',
             top: 'center',
-            textStyle: { color: '#fff' }
+            textStyle: {
+                color: '#fff',
+                fontSize: 12
+            }
         };
     } else {
+        // Continuous Mode with thermal colormap
         visualMap = {
             type: 'continuous',
             min: 0,
@@ -89,15 +205,43 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
             realtime: true,
             inRange: {
                 color: [
-                    '#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8',
-                    '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026'
+                    '#0d47a1',  // Deep blue
+                    '#1976d2',  // Blue
+                    '#2196f3',  // Light blue
+                    '#03a9f4',  // Sky blue
+                    '#00bcd4',  // Cyan
+                    '#00e676',  // Green-cyan
+                    '#76ff03',  // Light green
+                    '#ffeb3b',  // Yellow
+                    '#ffc107',  // Amber
+                    '#ff9800',  // Orange
+                    '#ff5722',  // Deep orange
+                    '#f44336',  // Red
+                    '#d32f2f'   // Dark red
                 ]
+            },
+            outOfRange: {
+                color: '#b71c1c'  // Very dark red
             },
             orient: 'vertical',
             left: 'left',
             top: 'center',
-            textStyle: { color: '#fff' }
+            textStyle: {
+                color: '#fff',
+                fontSize: 12
+            },
+            formatter: function (value) {
+                return value.toFixed(1) + '\u00B0';
+            }
         };
+    }
+
+    // Calculate vessel position angle
+    let vesselDisplayAngle;
+    if (directionMode === 'northup') {
+        vesselDisplayAngle = vesselHeading;
+    } else {
+        vesselDisplayAngle = 0;
     }
 
     // Chart options
@@ -107,15 +251,34 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
             text: 'Roll Angle (deg)',
             left: 'center',
             top: 20,
-            textStyle: { color: '#fff', fontSize: 16 }
+            textStyle: {
+                color: '#fff',
+                fontSize: 18,
+                fontWeight: 'bold'
+            }
         },
         tooltip: {
             trigger: 'item',
             formatter: function (params) {
-                if (params.componentType === 'series' && params.seriesType === 'scatter') {
-                    return `<b>Heading:</b> ${params.value[0].toFixed(1)}°<br/>
-                            <b>Speed:</b> ${params.value[1].toFixed(1)} kn<br/>
-                            <b>Roll:</b> ${params.value[2].toFixed(2)}°`;
+                if (params.componentType === 'series') {
+                    if (params.seriesName === 'Roll Response') {
+                        const angle = params.value[0].toFixed(1);
+                        const speed = params.value[1].toFixed(1);
+                        const roll = params.value[2].toFixed(2);
+                        const status = roll > maxRoll ? '\u26A0\uFE0F DANGER' :
+                            roll > (maxRoll - 5) ? '\u26A0 CAUTION' : '\u2713 SAFE';
+                        return `<b>Direction:</b> ${angle}\u00B0<br/>
+                                <b>Speed:</b> ${speed} kn<br/>
+                                <b>Roll:</b> ${roll}\u00B0<br/>
+                                <b>Status:</b> ${status}`;
+                    } else if (params.seriesName === 'Vessel Position') {
+                        return `<b>Vessel Position</b><br/>
+                                Heading: ${vesselHeading}\u00B0<br/>
+                                Speed: ${vesselSpeed} kn`;
+                    } else if (params.seriesName === 'Wave Direction') {
+                        return `<b>Wave Direction</b><br/>
+                                ${waveDirection.toFixed(0)}\u00B0`;
+                    }
                 }
                 return '';
             }
@@ -123,7 +286,7 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
         visualMap: visualMap,
         polar: {
             center: ['50%', '55%'],
-            radius: '60%'
+            radius: '65%'
         },
         angleAxis: {
             type: 'value',
@@ -131,71 +294,201 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
             min: 0,
             max: 360,
             interval: 30,
-            splitLine: { lineStyle: { color: '#444' } },
-            axisLabel: {
-                formatter: '{value}°',
-                color: '#fff'
+            splitLine: {
+                show: true,
+                lineStyle: {
+                    color: '#555',
+                    width: 1,
+                    type: 'solid'
+                }
             },
-            axisLine: { lineStyle: { color: '#666' } }
+            axisLabel: {
+                formatter: '{value}\u00B0',
+                color: '#fff',
+                fontSize: 12
+            },
+            axisLine: {
+                lineStyle: {
+                    color: '#777',
+                    width: 2
+                }
+            }
         },
         radiusAxis: {
             type: 'value',
             min: 0,
             max: Math.max(...radii) * 1.1,
-            splitLine: { lineStyle: { color: '#444' } },
+            splitLine: {
+                show: true,
+                lineStyle: {
+                    color: '#555',
+                    width: 1,
+                    type: 'solid'
+                }
+            },
             axisLabel: {
                 formatter: '{value} kn',
-                color: '#fff'
+                color: '#fff',
+                fontSize: 11
             },
-            axisLine: { lineStyle: { color: '#666' } }
+            axisLine: {
+                lineStyle: {
+                    color: '#777',
+                    width: 2
+                }
+            }
         },
         series: [
             {
                 name: 'Roll Response',
                 type: 'scatter',
                 coordinateSystem: 'polar',
-                symbolSize: function (val) {
-                    return Math.max(8, 400 / chartDataPoints.length);
-                },
-                data: chartDataPoints,
+                // KEY: Large symbols with high opacity create filled contour effect
+                symbolSize: 25,  // Large enough to overlap and fill space
+                data: heatmapData,
                 itemStyle: {
-                    opacity: 0.85
-                }
+                    opacity: 1,  // Full opacity for solid fill
+                    borderWidth: 0  // No borders between points
+                },
+                large: true,
+                largeThreshold: 2000,
+                progressive: 1000,
+                progressiveThreshold: 3000
             }
         ]
     };
 
-    // Add vessel position marker if specified
-    if (vesselSpeed > 0 && vesselHeading >= 0) {
+    // Add vessel position marker
+    if (vesselSpeed > 0) {
         option.series.push({
             name: 'Vessel Position',
             type: 'scatter',
             coordinateSystem: 'polar',
-            symbolSize: 20,
-            data: [[vesselHeading, vesselSpeed, 0]],
+            symbolSize: 30,
+            symbol: 'triangle',  // Triangle pointing up
+            data: [[vesselDisplayAngle, vesselSpeed, 0]],
             itemStyle: {
-                color: '#fff',
-                borderColor: '#0066ff',
-                borderWidth: 3
+                color: '#FFFFFF',
+                borderColor: '#000000',
+                borderWidth: 2,
+                shadowBlur: 15,
+                shadowColor: '#00FFFF'
             },
             label: {
                 show: true,
-                formatter: 'Vessel',
+                formatter: 'VESSEL',
                 position: 'top',
-                color: '#fff'
-            }
+                color: '#fff',
+                fontSize: 10,
+                fontWeight: 'bold',
+                distance: 15,
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                padding: [2, 5],
+                borderRadius: 3
+            },
+            z: 100
+        });
+    }
+
+    // Add wave direction indicator
+    const maxDisplayRadius = Math.max(...radii) * 1.08;
+    option.series.push({
+        name: 'Wave Direction',
+        type: 'scatter',
+        coordinateSystem: 'polar',
+        symbolSize: 25,
+        symbol: 'arrow',  // Arrow symbol
+        data: [[waveDirection, maxDisplayRadius, 0]],
+        itemStyle: {
+            color: '#FF1493',
+            borderColor: '#FFFFFF',
+            borderWidth: 2,
+            shadowBlur: 10,
+            shadowColor: '#FF1493'
+        },
+        label: {
+            show: true,
+            formatter: 'WAVE',
+            position: 'top',
+            color: '#fff',
+            fontSize: 10,
+            fontWeight: 'bold',
+            distance: 15,
+            backgroundColor: 'rgba(255,20,147,0.8)',
+            padding: [2, 5],
+            borderRadius: 3
+        },
+        z: 99
+    });
+
+    // Add compass labels
+    const labelRadius = Math.max(...radii) * 1.18;
+    if (directionMode === 'northup') {
+        const compassLabels = [
+            { angle: 0, label: 'N', color: '#FFD700' },
+            { angle: 90, label: 'E', color: '#C0C0C0' },
+            { angle: 180, label: 'S', color: '#C0C0C0' },
+            { angle: 270, label: 'W', color: '#C0C0C0' }
+        ];
+
+        option.series.push({
+            name: 'Compass',
+            type: 'scatter',
+            coordinateSystem: 'polar',
+            symbolSize: 1,
+            data: compassLabels.map(c => [c.angle, labelRadius, 0]),
+            label: {
+                show: true,
+                formatter: function (params) {
+                    return compassLabels[params.dataIndex].label;
+                },
+                color: function (params) {
+                    return compassLabels[params.dataIndex].color;
+                },
+                fontSize: 18,
+                fontWeight: 'bold',
+                distance: 5
+            },
+            itemStyle: {
+                opacity: 0
+            },
+            z: 1
+        });
+    } else {
+        option.series.push({
+            name: 'Compass',
+            type: 'scatter',
+            coordinateSystem: 'polar',
+            symbolSize: 1,
+            data: [[0, labelRadius, 0]],
+            label: {
+                show: true,
+                formatter: 'BOW',
+                color: '#FFD700',
+                fontSize: 18,
+                fontWeight: 'bold',
+                distance: 5
+            },
+            itemStyle: {
+                opacity: 0
+            },
+            z: 1
         });
     }
 
     // Set option and render
-    chart.setOption(option);
+    chart.setOption(option, true);
 
     // Handle window resize
-    window.addEventListener('resize', function () {
+    const resizeHandler = function () {
         if (window.polarChart.instance) {
             window.polarChart.instance.resize();
         }
-    });
+    };
+
+    window.removeEventListener('resize', window.polarChart.resizeHandler);
+    window.polarChart.resizeHandler = resizeHandler;
+    window.addEventListener('resize', resizeHandler);
 };
 
 window.polarChart.exportImage = function () {
@@ -209,10 +502,13 @@ window.polarChart.exportImage = function () {
     return null;
 };
 
-
 window.polarChart.dispose = function () {
     if (window.polarChart.instance) {
         window.polarChart.instance.dispose();
         window.polarChart.instance = null;
+    }
+    if (window.polarChart.resizeHandler) {
+        window.removeEventListener('resize', window.polarChart.resizeHandler);
+        window.polarChart.resizeHandler = null;
     }
 };

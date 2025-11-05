@@ -91,6 +91,7 @@
                         <label class="form-label">Mean Wave Direction (degree)</label>
                         <input type="number" class="form-control" @bind="waveDirection"
                                step="1" min="0" max="360" />
+                        <small class="form-text text-muted">Clockwise from North</small>
                     </div>
                 </div>
 
@@ -103,7 +104,8 @@
                         <label class="form-label">Plot Mode</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="plotMode"
-                                   id="modeContinuous" value="continuous" @onchange="@(() => displayMode = "continuous")"
+                                   id="modeContinuous" value="continuous"
+                                   @onchange="@(() => { displayMode = "continuous"; OnDisplayModeChanged(); })"
                                    checked="@(displayMode == "continuous")" />
                             <label class="form-check-label" for="modeContinuous">
                                 Continuous (10-stage)
@@ -111,7 +113,8 @@
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="plotMode"
-                                   id="modeTraffic" value="trafficlight" @onchange="@(() => displayMode = "trafficlight")"
+                                   id="modeTraffic" value="trafficlight"
+                                   @onchange="@(() => { displayMode = "trafficlight"; OnDisplayModeChanged(); })"
                                    checked="@(displayMode == "trafficlight")" />
                             <label class="form-check-label" for="modeTraffic">
                                 Traffic Light
@@ -124,7 +127,8 @@
                         <label class="form-label">Direction</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="dirMode"
-                                   id="dirNorth" value="northup" @onchange="@(() => directionMode = "northup")"
+                                   id="dirNorth" value="northup"
+                                   @onchange="@(() => { directionMode = "northup"; OnDisplayModeChanged(); })"
                                    checked="@(directionMode == "northup")" />
                             <label class="form-check-label" for="dirNorth">
                                 North Up
@@ -132,7 +136,8 @@
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="dirMode"
-                                   id="dirHeads" value="headsup" @onchange="@(() => directionMode = "headsup")"
+                                   id="dirHeads" value="headsup"
+                                   @onchange="@(() => { directionMode = "headsup"; OnDisplayModeChanged(); })"
                                    checked="@(directionMode == "headsup")" />
                             <label class="form-check-label" for="dirHeads">
                                 Heads Up
@@ -163,13 +168,15 @@
             {
                 <div class="card bg-dark text-white mt-3">
                     <div class="card-header">
-                        <h6 class="mb-0">Polar Diagram Closest to Request</h6>
+                        <h6 class="mb-0">Polar Diagram Data</h6>
                     </div>
                     <div class="card-body">
                         <p class="mb-1"><strong>Draft:</strong> @parameters.Draft</p>
                         <p class="mb-1"><strong>GM:</strong> @loadResult.FittedGM.ToString("F1") m</p>
                         <p class="mb-1"><strong>Hs:</strong> @loadResult.FittedHs.ToString("F1") m</p>
-                        <p class="mb-0"><strong>Tz:</strong> @loadResult.FittedTz.ToString("F1") s</p>
+                        <p class="mb-1"><strong>Tz:</strong> @loadResult.FittedTz.ToString("F1") s</p>
+                        <hr />
+                        <p class="mb-0 small text-muted" style="word-break: break-all;">@System.IO.Path.GetFileName(loadResult.FilePath)</p>
                     </div>
                 </div>
             }
@@ -210,7 +217,16 @@
 </div>
 
 @code {
-    private PolarLoadParameters parameters = new() { Draft = "scantling", GM = 1.5, Hs = 5.5, Tz = 7.5 };
+    private PolarLoadParameters parameters = new()
+    {
+        Draft = "scantling",
+        GM = 1.5,
+        Hs = 5.5,
+        Tz = 7.5,
+        DraftAftPeak = 0,
+        DraftForePeak = 0
+    };
+
     private double vesselHeading = 0;
     private double vesselSpeed = 10;
     private double waveDirection = 0;
@@ -227,9 +243,7 @@
     {
         if (firstRender)
         {
-
             await Task.Delay(500);
-
 
             try
             {
@@ -250,6 +264,17 @@
         }
     }
 
+    // Only called when display mode radio buttons change (North Up / Heads Up / Traffic Light / Continuous)
+    private void OnDisplayModeChanged()
+    {
+        if (hasData)
+        {
+            // Re-render with same data but different display mode
+            _ = RenderChart();
+        }
+    }
+
+    // Only called when user clicks "Load & Render" button
     private async Task LoadAndRenderData()
     {
         isLoading = true;
@@ -258,7 +283,7 @@
 
         try
         {
-            // Load data
+            // Load data from file based on current parameters
             loadResult = PolarService.LoadPolarData(parameters);
 
             if (!loadResult.Success)
@@ -270,44 +295,8 @@
 
             hasData = true;
 
-            // Transform data for chart
-            var data = loadResult.Data!;
-
-            double[] displayAngles = new double[data.HeadingCount];
-            for (int i = 0; i < data.HeadingCount; i++)
-            {
-                if (directionMode == "northup")
-                {
-                    // North Up: θ = 180 + (α - β)
-                    displayAngles[i] = 180 + (data.Headings[i] - vesselHeading);
-                }
-                else
-                {
-                    // Heads Up: θ = 180 - β
-                    displayAngles[i] = 180 - data.Headings[i];
-                }
-
-                // Normalize to [0, 360)
-                while (displayAngles[i] < 0) displayAngles[i] += 360;
-                while (displayAngles[i] >= 360) displayAngles[i] -= 360;
-            }
-
-            // Prepare chart data as JSON string to avoid serialization issues
-            var chartDataJson = System.Text.Json.JsonSerializer.Serialize(new
-            {
-                angles = displayAngles,
-                radii = data.Speeds,
-                matrix = ConvertTo2DArray(data.MaxRoll),
-                maxRoll = maxRollAngle,
-                mode = displayMode,
-                vesselHeading = directionMode == "northup" ? vesselHeading : 0,
-                vesselSpeed = vesselSpeed,
-                startAngle = 90
-            });
-
-            // Call the global function directly - no module import needed
-            await JSRuntime.InvokeVoidAsync("window.polarChart.renderChart",
-                "polarChartContainer", chartDataJson);
+            // Render the chart
+            await RenderChart();
         }
         catch (Exception ex)
         {
@@ -318,6 +307,77 @@
         {
             isLoading = false;
             StateHasChanged();
+        }
+    }
+
+    private async Task RenderChart()
+    {
+        if (loadResult?.Data == null)
+            return;
+
+        try
+        {
+            var data = loadResult.Data;
+
+            double[] displayAngles = new double[data.HeadingCount];
+
+            // CORRECTED ANGLE CALCULATION per PPT Slide 13
+            for (int i = 0; i < data.HeadingCount; i++)
+            {
+                double beta = data.Headings[i]; // Wave direction from data file (counterclockwise from vessel bow)
+
+                if (directionMode == "northup")
+                {
+                    // North Up: θ = 180 + (α - β)
+                    // α = vesselHeading, β = data.Headings[i]
+                    displayAngles[i] = 180 + (vesselHeading - beta);
+                }
+                else // headsup
+                {
+                    // Heads Up: θ = 180 - β
+                    displayAngles[i] = 180 - beta;
+                }
+
+                // Normalize to [0, 360)
+                while (displayAngles[i] < 0) displayAngles[i] += 360;
+                while (displayAngles[i] >= 360) displayAngles[i] -= 360;
+            }
+
+            // Calculate wave direction display angle
+            double waveDisplayAngle;
+            if (directionMode == "northup")
+            {
+                waveDisplayAngle = waveDirection;
+            }
+            else
+            {
+                waveDisplayAngle = waveDirection - vesselHeading;
+                while (waveDisplayAngle < 0) waveDisplayAngle += 360;
+                while (waveDisplayAngle >= 360) waveDisplayAngle -= 360;
+            }
+
+            // Prepare chart data
+            var chartDataJson = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                angles = displayAngles,
+                radii = data.Speeds,
+                matrix = ConvertTo2DArray(data.MaxRoll),
+                maxRoll = maxRollAngle,
+                mode = displayMode,
+                directionMode = directionMode,
+                vesselHeading = vesselHeading,
+                vesselSpeed = vesselSpeed,
+                waveDirection = waveDisplayAngle,
+                startAngle = 90
+            });
+
+            // Render chart
+            await JSRuntime.InvokeVoidAsync("window.polarChart.renderChart",
+                "polarChartContainer", chartDataJson);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Rendering error: {ex.Message}";
         }
     }
 
@@ -351,7 +411,6 @@
             var imageData = await JSRuntime.InvokeAsync<string>("window.polarChart.exportImage");
             if (!string.IsNullOrEmpty(imageData))
             {
- 
                 await JSRuntime.InvokeVoidAsync("alert",
                     "Image export ready. Feature will save to device storage.");
             }
