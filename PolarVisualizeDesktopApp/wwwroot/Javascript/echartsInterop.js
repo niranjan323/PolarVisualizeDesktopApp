@@ -219,7 +219,7 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
         ctx.font = '14px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(angle + '°', x, y);
+        ctx.fillText(angle + '\u00B0', x, y);
     }
 
     // Draw compass labels
@@ -318,9 +318,9 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
     if (mode === 'trafficlight') {
         // Traffic light legend
         const boxes = [
-            { color: '#2ecc71', label: `Safe (0-${(maxRoll - 5).toFixed(0)}°)` },
-            { color: '#f39c12', label: `Caution (${(maxRoll - 5).toFixed(0)}-${maxRoll.toFixed(0)}°)` },
-            { color: '#e74c3c', label: `Danger (>${maxRoll.toFixed(0)}°)` }
+            { color: '#2ecc71', label: `Safe (0-${(maxRoll - 5).toFixed(0)}\u00B0)` },
+            { color: '#f39c12', label: `Caution (${(maxRoll - 5).toFixed(0)}-${maxRoll.toFixed(0)}\u00B0)` },
+            { color: '#e74c3c', label: `Danger (>${maxRoll.toFixed(0)}\u00B0)` }
         ];
 
         boxes.forEach((box, i) => {
@@ -351,8 +351,8 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
         ctx.fillStyle = '#fff';
         ctx.font = '11px Arial';
         ctx.textAlign = 'left';
-        ctx.fillText(maxRoll.toFixed(0) + '°', legendX + 25, legendY + 10);
-        ctx.fillText('0°', legendX + 25, legendY + legendHeight - 5);
+        ctx.fillText(maxRoll.toFixed(0) + '\u00B0', legendX + 25, legendY + 10);
+        ctx.fillText('0\u00B0', legendX + 25, legendY + legendHeight - 5);
     }
 
     // Title
