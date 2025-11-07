@@ -6,247 +6,347 @@
 <PageTitle>Polar Response Visualization</PageTitle>
 
 <div class="container-fluid p-3">
-    <div class="row">
-        <!-- Left Panel - Controls -->
-        <div class="col-md-3 col-lg-2">
-            <div class="card bg-dark text-white">
-                <div class="card-header">
-                    <h5 class="mb-0">Vessel Operation Conditions</h5>
-                </div>
-                <div class="card-body">
-                    <!-- Draft Selection -->
-                    <div class="mb-3">
-                        <label class="form-label">Draft Category</label>
-                        <select class="form-select form-select-sm" @bind="parameters.Draft">
-                            <option value="scantling">Scantling</option>
-                            <option value="design">Design</option>
-                            <option value="intermediate">Intermediate</option>
-                        </select>
-                    </div>
-
-                    <!-- Draft Aft Peak -->
-                    <div class="mb-3">
-                        <label class="form-label">Draft Aft Peak (m)</label>
-                        <input type="number" class="form-control form-control-sm" @bind="parameters.DraftAftPeak"
-                               step="0.1" min="0" max="30" />
-                    </div>
-
-                    <!-- Draft Fore Peak -->
-                    <div class="mb-3">
-                        <label class="form-label">Draft Fore Peak (m)</label>
-                        <input type="number" class="form-control form-control-sm" @bind="parameters.DraftForePeak"
-                               step="0.1" min="0" max="30" />
-                    </div>
-
-                    <!-- GM -->
-                    <div class="mb-3">
-                        <label class="form-label">Metacentric Height, GM (m)</label>
-                        <input type="number" class="form-control form-control-sm" @bind="parameters.GM"
-                               step="0.5" min="0.5" max="10" />
-                    </div>
-
-                    <!-- Heading -->
-                    <div class="mb-3">
-                        <label class="form-label">Heading (degree)</label>
-                        <input type="number" class="form-control form-control-sm" @bind="vesselHeading"
-                               step="1" min="0" max="360" />
-                        <small class="form-text text-muted">Clockwise from North to Bow</small>
-                    </div>
-
-                    <!-- Speed -->
-                    <div class="mb-3">
-                        <label class="form-label">Speed (kn)</label>
-                        <input type="number" class="form-control form-control-sm" @bind="vesselSpeed"
-                               step="0.5" min="0" max="30" />
-                    </div>
-
-                    <!-- Maximum Roll -->
-                    <div class="mb-3">
-                        <label class="form-label">Maximum Allowed Roll Angle (degree)</label>
-                        <input type="number" class="form-control form-control-sm" @bind="maxRollAngle"
-                               step="1" min="0" max="30" />
-                    </div>
-                </div>
-
-                <div class="card-header">
-                    <h5 class="mb-0">Sea State</h5>
-                </div>
-                <div class="card-body">
-                    <!-- Significant Wave Height -->
-                    <div class="mb-3">
-                        <label class="form-label">Significant Wave Height, Hs (m)</label>
-                        <input type="number" class="form-control form-control-sm" @bind="parameters.Hs"
-                               step="0.5" min="0" max="20" />
-                    </div>
-
-                    <!-- Mean Wave Period -->
-                    <div class="mb-3">
-                        <label class="form-label">Mean Wave Period, Tz (s)</label>
-                        <input type="number" class="form-control form-control-sm" @bind="parameters.Tz"
-                               step="0.5" min="0" max="25" />
-                    </div>
-
-                    <!-- Mean Wave Direction -->
-                    <div class="mb-3">
-                        <label class="form-label">Mean Wave Direction (degree)</label>
-                        <input type="number" class="form-control form-control-sm" @bind="waveDirection"
-                               step="1" min="0" max="360" />
-                        <small class="form-text text-muted">Clockwise from North</small>
-                    </div>
-                </div>
-
-                <div class="card-header">
-                    <h5 class="mb-0">Display Options</h5>
-                </div>
-                <div class="card-body">
-                    <!-- Display Mode -->
-                    <div class="mb-3">
-                        <label class="form-label">Plot Mode</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="plotMode"
-                                   id="modeContinuous" value="continuous"
-                                   @onchange="@(() => { displayMode = "continuous"; OnDisplayModeChanged(); })"
-                                   checked="@(displayMode == "continuous")" />
-                            <label class="form-check-label" for="modeContinuous">
-                                Continuous
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="plotMode"
-                                   id="modeTraffic" value="trafficlight"
-                                   @onchange="@(() => { displayMode = "trafficlight"; OnDisplayModeChanged(); })"
-                                   checked="@(displayMode == "trafficlight")" />
-                            <label class="form-check-label" for="modeTraffic">
-                                Traffic Light
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Direction Display -->
-                    <div class="mb-3">
-                        <label class="form-label">Direction</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="dirMode"
-                                   id="dirNorth" value="northup"
-                                   @onchange="@(() => { directionMode = "northup"; OnDisplayModeChanged(); })"
-                                   checked="@(directionMode == "northup")" />
-                            <label class="form-check-label" for="dirNorth">
-                                North Up
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="dirMode"
-                                   id="dirHeads" value="headsup"
-                                   @onchange="@(() => { directionMode = "headsup"; OnDisplayModeChanged(); })"
-                                   checked="@(directionMode == "headsup")" />
-                            <label class="form-check-label" for="dirHeads">
-                                Heads Up
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card-footer">
-                    <button class="btn btn-primary w-100 mb-2 btn-sm" @onclick="LoadAndRenderData" disabled="@isLoading">
-                        @if (isLoading)
-                        {
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                        }
-                        Load & Render
-                    </button>
-                    <button class="btn btn-success w-100 mb-2 btn-sm" @onclick="SaveCase" disabled="@(!hasData)">
-                        Save Case
-                    </button>
-                    <button class="btn btn-info w-100 btn-sm" @onclick="ExportChart" disabled="@(!hasData)">
-                        Export Image
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Center Panel - Chart -->
-        <div class="col-md-6 col-lg-7">
-            <div class="card bg-dark text-white" style="height: 750px;">
-                <div class="card-body p-2">
-                    @if (errorMessage != null)
-                    {
-                        <div class="alert alert-danger" role="alert">
-                            <strong>Error:</strong> @errorMessage
-                        </div>
-                    }
-
-                    @if (!hasData && errorMessage == null)
-                    {
-                        <div class="d-flex align-items-center justify-content-center h-100">
-                            <div class="text-center text-muted">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-compass" viewBox="0 0 16 16">
-                                    <path d="M8 16.016a7.5 7.5 0 0 0 1.962-14.74A1 1 0 0 0 9 0H7a1 1 0 0 0-.962 1.276A7.5 7.5 0 0 0 8 16.016zm6.5-7.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z" />
-                                    <path d="m6.94 7.44 4.95-2.83-2.83 4.95-4.949 2.83 2.828-4.95z" />
-                                </svg>
-                                <h4 class="mt-3">No Data Loaded</h4>
-                                <p>Configure parameters and click "Load & Render"</p>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div id="polarChartContainer" style="width: 100%; height: 100%;"></div>
-                    }
-                </div>
-            </div>
-
-            <!-- Case Selector at Bottom -->
-            @if (hasData)
-            {
-                <div class="card bg-dark text-white mt-2">
-                    <div class="card-body p-2">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <button class="btn btn-sm btn-secondary" @onclick="PreviousCase">
-                                <span>&lt;&lt;</span>
-                            </button>
-
-                            @for (int i = 0; i < savedCases.Count; i++)
-                            {
-                                var index = i;
-                                var isActive = index == currentCaseIndex;
-                                var statusColor = savedCases[i].IsInDangerZone ? "danger" : "success";
-
-                                <button class="btn btn-sm mx-1 @(isActive ? "btn-primary" : $"btn-outline-{statusColor}")"
-                                        @onclick="() => LoadCase(index)">
-                                    Case @(i + 1)
-                                </button>
-                            }
-
-                            <button class="btn btn-sm btn-secondary" @onclick="NextCase">
-                                <span>&gt;&gt;</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-
-        <!-- Right Panel - Info -->
-        <div class="col-md-3 col-lg-3">
-            @if (loadResult != null && loadResult.Success)
-            {
+    <!-- Project Setup Section -->
+    @if (!isProjectSetup)
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-6">
                 <div class="card bg-dark text-white">
                     <div class="card-header">
-                        <h6 class="mb-0">Polar Diagram Closest to Request</h6>
+                        <h4 class="mb-0">Project Setup</h4>
                     </div>
                     <div class="card-body">
-                        <p class="mb-1"><strong>Draft:</strong> @parameters.Draft</p>
-                        <p class="mb-1"><strong>GM:</strong> @loadResult.FittedGM.ToString("F1") m</p>
-                        <p class="mb-1"><strong>Hs:</strong> @loadResult.FittedHs.ToString("F1") m</p>
-                        <p class="mb-1"><strong>Tz:</strong> @loadResult.FittedTz.ToString("F1") s</p>
+                        <div class="mb-4">
+                            <label class="form-label">Select Project Folder</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" @bind="projectFolder" readonly />
+                                <button class="btn btn-outline-light" @onclick="BrowseProjectFolder">
+                                    Browse...
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">
+                                Select folder containing polar data (C:\PolarData)
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Load Control File</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" @bind="controlFile" readonly />
+                                <button class="btn btn-outline-light" @onclick="BrowseControlFile">
+                                    Browse...
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">
+                                Select control file containing vessel information
+                            </small>
+                        </div>
+
+                        @if (vesselInfo != null)
+                        {
+                            <div class="alert alert-info">
+                                <strong>Vessel Information:</strong><br />
+                                IMO: @vesselInfo.IMO<br />
+                                @if (!string.IsNullOrEmpty(vesselInfo.Name))
+                                {
+                                    <text>Name: @vesselInfo.Name<br /></text>
+                                }
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(setupErrorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                @setupErrorMessage
+                            </div>
+                        }
+
+                        <button class="btn btn-primary w-100" @onclick="CompleteSetup"
+                                disabled="@(string.IsNullOrEmpty(projectFolder))">
+                            Continue to Application
+                        </button>
                     </div>
                 </div>
-            }
+            </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <!-- Main Application UI -->
+        <div class="row">
+            <!-- Left Panel - Controls -->
+            <div class="col-md-3 col-lg-2">
+                <div class="card bg-dark text-white">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            Vessel Operation Conditions
+                            @if (vesselInfo != null)
+                            {
+                                <br />
+                        
+                                <small class="text-muted">IMO: @vesselInfo.IMO</small>
+                            }
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Draft Selection -->
+                        <div class="mb-3">
+                            <label class="form-label">Draft Category</label>
+                            <select class="form-select form-select-sm" @bind="parameters.Draft">
+                                <option value="scantling">Scantling</option>
+                                <option value="design">Design</option>
+                                <option value="intermediate">Intermediate</option>
+                            </select>
+                            @if (representativeDrafts != null)
+                            {
+                                <small class="text-muted">
+                                    S:@representativeDrafts.Ts.ToString("F1") /
+                                    D:@representativeDrafts.Td.ToString("F1") /
+                                    I:@representativeDrafts.Ti.ToString("F1")m
+                                </small>
+                            }
+                        </div>
+
+                        <!-- Draft Aft Peak -->
+                        <div class="mb-3">
+                            <label class="form-label">Draft Aft Peak (m)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="parameters.DraftAftPeak"
+                                   step="0.1" min="0" max="30" />
+                        </div>
+
+                        <!-- Draft Fore Peak -->
+                        <div class="mb-3">
+                            <label class="form-label">Draft Fore Peak (m)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="parameters.DraftForePeak"
+                                   step="0.1" min="0" max="30" />
+                        </div>
+
+                        <!-- GM -->
+                        <div class="mb-3">
+                            <label class="form-label">Metacentric Height, GM (m)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="parameters.GM"
+                                   step="0.5" min="@parameterBounds.GM_lower" max="@parameterBounds.GM_upper" />
+                            <small class="text-muted">Range: [@parameterBounds.GM_lower.ToString("F1"), @parameterBounds.GM_upper.ToString("F1")]</small>
+                        </div>
+
+                        <!-- Heading -->
+                        <div class="mb-3">
+                            <label class="form-label">Heading (degree)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="vesselHeading"
+                                   step="1" min="0" max="360" />
+                            <small class="form-text text-muted">Clockwise from North to Bow</small>
+                        </div>
+
+                        <!-- Speed -->
+                        <div class="mb-3">
+                            <label class="form-label">Speed (kn)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="vesselSpeed"
+                                   step="0.5" min="0" max="30" />
+                        </div>
+
+                        <!-- Maximum Roll -->
+                        <div class="mb-3">
+                            <label class="form-label">Maximum Allowed Roll Angle (degree)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="maxRollAngle"
+                                   step="1" min="0" max="30" />
+                        </div>
+                    </div>
+
+                    <div class="card-header">
+                        <h5 class="mb-0">Sea State</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Significant Wave Height -->
+                        <div class="mb-3">
+                            <label class="form-label">Significant Wave Height, Hs (m)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="parameters.Hs"
+                                   step="0.5" min="@parameterBounds.Hs_lower" max="@parameterBounds.Hs_upper" />
+                            <small class="text-muted">Range: [@parameterBounds.Hs_lower.ToString("F1"), @parameterBounds.Hs_upper.ToString("F1")]</small>
+                        </div>
+
+                        <!-- Mean Wave Period -->
+                        <div class="mb-3">
+                            <label class="form-label">Mean Wave Period, Tz (s)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="parameters.Tz"
+                                   step="0.5" min="@parameterBounds.Tz_lower" max="@parameterBounds.Tz_upper" />
+                            <small class="text-muted">Range: [@parameterBounds.Tz_lower.ToString("F1"), @parameterBounds.Tz_upper.ToString("F1")]</small>
+                        </div>
+
+                        <!-- Mean Wave Direction -->
+                        <div class="mb-3">
+                            <label class="form-label">Mean Wave Direction (degree)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="waveDirection"
+                                   step="1" min="0" max="360" />
+                            <small class="form-text text-muted">Clockwise from North</small>
+                        </div>
+                    </div>
+
+                    <div class="card-header">
+                        <h5 class="mb-0">Display Options</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Display Mode -->
+                        <div class="mb-3">
+                            <label class="form-label">Plot Mode</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="plotMode"
+                                       id="modeContinuous" value="continuous"
+                                       @onchange="@(() => { displayMode = "continuous"; OnDisplayModeChanged(); })"
+                                       checked="@(displayMode == "continuous")" />
+                                <label class="form-check-label" for="modeContinuous">
+                                    Continuous
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="plotMode"
+                                       id="modeTraffic" value="trafficlight"
+                                       @onchange="@(() => { displayMode = "trafficlight"; OnDisplayModeChanged(); })"
+                                       checked="@(displayMode == "trafficlight")" />
+                                <label class="form-check-label" for="modeTraffic">
+                                    Traffic Light
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Direction Display -->
+                        <div class="mb-3">
+                            <label class="form-label">Direction</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="dirMode"
+                                       id="dirNorth" value="northup"
+                                       @onchange="@(() => { directionMode = "northup"; OnDisplayModeChanged(); })"
+                                       checked="@(directionMode == "northup")" />
+                                <label class="form-check-label" for="dirNorth">
+                                    North Up
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="dirMode"
+                                       id="dirHeads" value="headsup"
+                                       @onchange="@(() => { directionMode = "headsup"; OnDisplayModeChanged(); })"
+                                       checked="@(directionMode == "headsup")" />
+                                <label class="form-check-label" for="dirHeads">
+                                    Heads Up
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button class="btn btn-primary w-100 mb-2 btn-sm" @onclick="LoadAndRenderData" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Load & Render
+                        </button>
+                        <button class="btn btn-success w-100 mb-2 btn-sm" @onclick="SaveCase" disabled="@(!hasData)">
+                            Save Case
+                        </button>
+                        <button class="btn btn-info w-100 btn-sm" @onclick="ExportChart" disabled="@(!hasData)">
+                            Export Image
+                        </button>
+                        <button class="btn btn-secondary w-100 mt-2 btn-sm" @onclick="ReturnToSetup">
+                            Change Project
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Chart -->
+            <div class="col-md-6 col-lg-7">
+                <div class="card bg-dark text-white" style="height: 750px;">
+                    <div class="card-body p-2">
+                        @if (errorMessage != null)
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <strong>Error:</strong> @errorMessage
+                            </div>
+                        }
+
+                        @if (!hasData && errorMessage == null)
+                        {
+                            <div class="d-flex align-items-center justify-content-center h-100">
+                                <div class="text-center text-muted">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-compass" viewBox="0 0 16 16">
+                                        <path d="M8 16.016a7.5 7.5 0 0 0 1.962-14.74A1 1 0 0 0 9 0H7a1 1 0 0 0-.962 1.276A7.5 7.5 0 0 0 8 16.016zm6.5-7.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z" />
+                                        <path d="m6.94 7.44 4.95-2.83-2.83 4.95-4.949 2.83 2.828-4.95z" />
+                                    </svg>
+                                    <h4 class="mt-3">No Data Loaded</h4>
+                                    <p>Configure parameters and click "Load & Render"</p>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div id="polarChartContainer" style="width: 100%; height: 100%;"></div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Case Selector at Bottom -->
+                @if (hasData && savedCases.Count > 0)
+                {
+                    <div class="card bg-dark text-white mt-2">
+                        <div class="card-body p-2">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <button class="btn btn-sm btn-secondary" @onclick="PreviousCase">
+                                    <span>&lt;&lt;</span>
+                                </button>
+
+                                @for (int i = 0; i < savedCases.Count; i++)
+                                {
+                                    var index = i;
+                                    var isActive = index == currentCaseIndex;
+                                    var statusColor = savedCases[i].IsInDangerZone ? "danger" : "success";
+
+                                    <button class="btn btn-sm mx-1 @(isActive ? "btn-primary" : $"btn-outline-{statusColor}")"
+                                            @onclick="() => LoadCase(index)">
+                                        Case @(i + 1)
+                                    </button>
+                                }
+
+                                <button class="btn btn-sm btn-secondary" @onclick="NextCase">
+                                    <span>&gt;&gt;</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Right Panel - Info -->
+            <div class="col-md-3 col-lg-3">
+                @if (loadResult != null && loadResult.Success)
+                {
+                    <div class="card bg-dark text-white">
+                        <div class="card-header">
+                            <h6 class="mb-0">Polar Diagram Closest to Request</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-1"><strong>Draft:</strong> @parameters.Draft</p>
+                            <p class="mb-1"><strong>GM:</strong> @loadResult.FittedGM.ToString("F1") m</p>
+                            <p class="mb-1"><strong>Hs:</strong> @loadResult.FittedHs.ToString("F1") m</p>
+                            <p class="mb-1"><strong>Tz:</strong> @loadResult.FittedTz.ToString("F1") s</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 </div>
 
 @code {
+    // Setup state
+    private bool isProjectSetup = false;
+    private string projectFolder = "";
+    private string controlFile = "";
+    private string? setupErrorMessage = null;
+    private VesselInfo? vesselInfo = null;
+    private RepresentativeDraft? representativeDrafts = null;
+    private ParameterBound parameterBounds = new();
+
+    // Application state
     private PolarLoadParameters parameters = new()
     {
         Draft = "scantling",
@@ -280,20 +380,51 @@
         public bool IsInDangerZone { get; set; }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task BrowseProjectFolder()
     {
-        if (firstRender)
+        // Note: File browser requires platform-specific implementation
+        // For now, use default or prompt user to enter path
+        await JSRuntime.InvokeVoidAsync("alert", "Please enter project folder path manually or use default: C:\\PolarData");
+        projectFolder = @"C:\PolarData";
+        PolarService.SetDataRootPath(projectFolder);
+    }
+
+    private async Task BrowseControlFile()
+    {
+        // Note: File browser requires platform-specific implementation
+        await JSRuntime.InvokeVoidAsync("alert", "Please enter control file path");
+    }
+
+    private void CompleteSetup()
+    {
+        setupErrorMessage = null;
+
+        // Validate project folder
+        if (!PolarService.ValidateDataPath())
         {
-            await Task.Delay(500);
-            // Initialize with one default case
-            savedCases.Add(new SavedCase
-            {
-                Id = "Case 1",
-                Parameters = parameters,
-                IsInDangerZone = false
-            });
-            StateHasChanged();
+            setupErrorMessage = "Project folder does not exist or is invalid.";
+            return;
         }
+
+        // Load control file
+        if (!string.IsNullOrEmpty(controlFile) && !PolarService.LoadControlFile(controlFile))
+        {
+            setupErrorMessage = "Failed to load control file. Please check the file format.";
+            return;
+        }
+
+        // Get vessel info and bounds
+        vesselInfo = PolarService.GetVesselInfo();
+        representativeDrafts = PolarService.GetRepresentativeDrafts();
+        parameterBounds = PolarService.GetParameterBounds();
+
+        isProjectSetup = true;
+    }
+
+    private void ReturnToSetup()
+    {
+        isProjectSetup = false;
+        hasData = false;
     }
 
     private void OnDisplayModeChanged()
@@ -430,7 +561,7 @@
                 DraftAftPeak = parameters.DraftAftPeak,
                 DraftForePeak = parameters.DraftForePeak
             },
-            IsInDangerZone = false // Calculate based on data
+            IsInDangerZone = false
         };
 
         savedCases.Add(newCase);
