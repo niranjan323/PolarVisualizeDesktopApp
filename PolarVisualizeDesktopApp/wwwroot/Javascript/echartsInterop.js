@@ -186,14 +186,13 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
     ctx.lineWidth = 1;
 
     // Radial grid lines
-    for (let i = 1; i <= 5; i++) {
-        const r = minRadius + (maxRadius - minRadius) * (i / 5);
+    for (let i = 1; i <= 4; i++) {
+        const r = minRadius + (maxRadius - minRadius) * (i / 4);
         ctx.beginPath();
         ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Speed labels
-        const speed = (maxSpeed * i / 5).toFixed(0);
+        const speed = i * 5;
         ctx.fillStyle = '#fff';
         ctx.font = '12px Arial';
         ctx.fillText(speed + ' kn', centerX + 5, centerY - r);
