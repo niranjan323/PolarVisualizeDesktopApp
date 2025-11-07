@@ -54,15 +54,26 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
     window.polarChart.canvas = canvas;
     window.polarChart.container = container;
 
-    // Chart parameters
+    // Chart parameters - MODIFIED FOR ELLIPTICAL SHAPE
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const maxRadius = Math.min(centerX, centerY) * 0.75;
-    const minRadius = maxRadius * 0.1;
+    const maxRadiusX = centerX * 0.75;  // Horizontal radius
+    const maxRadiusY = centerY * 0.68;  // Vertical radius (slightly smaller for oval effect)
+    const minRadiusX = maxRadiusX * 0.1;
+    const minRadiusY = maxRadiusY * 0.1;
 
     // Helper function: angle to radians
     function toRadians(deg) {
         return (deg - 90) * Math.PI / 180; // -90 to start from top
+    }
+
+    // Helper function: get elliptical radius at given angle
+    function getEllipseRadius(angle, maxRX, maxRY) {
+        const rad = toRadians(angle);
+        const cosA = Math.cos(rad);
+        const sinA = Math.sin(rad);
+        // Ellipse equation: r = (a*b) / sqrt((b*cos(?))^2 + (a*sin(?))^2)
+        return (maxRX * maxRY) / Math.sqrt((maxRY * cosA) ** 2 + (maxRX * sinA) ** 2);
     }
 
     // Helper function: get color for roll value
@@ -132,7 +143,7 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw filled contours using wedges
+    // Draw filled contours using wedges with elliptical shape
     const numAngularSegments = 360; // 1 degree resolution
     const numRadialSegments = 50; // Radial segments
 
@@ -141,9 +152,6 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
     for (let r = 0; r < numRadialSegments; r++) {
         const innerRatio = r / numRadialSegments;
         const outerRatio = (r + 1) / numRadialSegments;
-
-        const innerRadius = minRadius + (maxRadius - minRadius) * innerRatio;
-        const outerRadius = minRadius + (maxRadius - minRadius) * outerRatio;
 
         const innerSpeed = maxSpeed * innerRatio;
         const outerSpeed = maxSpeed * outerRatio;
@@ -160,20 +168,39 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
             // Get color
             const color = getColor(rollValue);
 
+            // Calculate elliptical radii for this angle
+            const maxR1 = getEllipseRadius(angle1, maxRadiusX, maxRadiusY);
+            const maxR2 = getEllipseRadius(angle2, maxRadiusX, maxRadiusY);
+            const minR1 = getEllipseRadius(angle1, minRadiusX, minRadiusY);
+            const minR2 = getEllipseRadius(angle2, minRadiusX, minRadiusY);
+
+            const innerRadius1 = minR1 + (maxR1 - minR1) * innerRatio;
+            const innerRadius2 = minR2 + (maxR2 - minR2) * innerRatio;
+            const outerRadius1 = minR1 + (maxR1 - minR1) * outerRatio;
+            const outerRadius2 = minR2 + (maxR2 - minR2) * outerRatio;
+
             // Draw wedge segment
             ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
 
             const rad1 = toRadians(angle1);
             const rad2 = toRadians(angle2);
 
-            // Draw filled wedge
-            ctx.arc(centerX, centerY, innerRadius, rad1, rad2, false);
-            ctx.lineTo(
-                centerX + outerRadius * Math.cos(rad2),
-                centerY + outerRadius * Math.sin(rad2)
+            ctx.moveTo(
+                centerX + innerRadius1 * Math.cos(rad1),
+                centerY + innerRadius1 * Math.sin(rad1)
             );
-            ctx.arc(centerX, centerY, outerRadius, rad2, rad1, true);
+            ctx.lineTo(
+                centerX + outerRadius1 * Math.cos(rad1),
+                centerY + outerRadius1 * Math.sin(rad1)
+            );
+            ctx.lineTo(
+                centerX + outerRadius2 * Math.cos(rad2),
+                centerY + outerRadius2 * Math.sin(rad2)
+            );
+            ctx.lineTo(
+                centerX + innerRadius2 * Math.cos(rad2),
+                centerY + innerRadius2 * Math.sin(rad2)
+            );
             ctx.closePath();
 
             ctx.fillStyle = color;
@@ -181,36 +208,43 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
         }
     }
 
-    // Draw grid lines
+    // Draw grid lines (elliptical)
     ctx.strokeStyle = '#555';
     ctx.lineWidth = 1;
 
-    // Radial grid lines
+    // Radial grid lines (ellipses) - MODIFIED TO SHOW 5, 10, 15, 20
     for (let i = 1; i <= 4; i++) {
-        const r = minRadius + (maxRadius - minRadius) * (i / 4);
+        const ratioX = i / 4;
+        const ratioY = i / 4;
+        const rX = minRadiusX + (maxRadiusX - minRadiusX) * ratioX;
+        const rY = minRadiusY + (maxRadiusY - minRadiusY) * ratioY;
+
         ctx.beginPath();
-        ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+        ctx.ellipse(centerX, centerY, rX, rY, 0, 0, Math.PI * 2);
         ctx.stroke();
 
+        // Speed labels - Shows 5, 10, 15, 20
         const speed = i * 5;
         ctx.fillStyle = '#fff';
         ctx.font = '12px Arial';
-        ctx.fillText(speed + ' kn', centerX + 5, centerY - r);
+        ctx.fillText(speed + ' kn', centerX + 5, centerY - rY);
     }
 
     // Angular grid lines
     for (let angle = 0; angle < 360; angle += 30) {
         const rad = toRadians(angle);
+        const maxR = getEllipseRadius(angle, maxRadiusX, maxRadiusY);
+
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.lineTo(
-            centerX + maxRadius * Math.cos(rad),
-            centerY + maxRadius * Math.sin(rad)
+            centerX + maxR * Math.cos(rad),
+            centerY + maxR * Math.sin(rad)
         );
         ctx.stroke();
 
         // Angle labels
-        const labelRadius = maxRadius * 1.15;
+        const labelRadius = maxR * 1.15;
         const x = centerX + labelRadius * Math.cos(rad);
         const y = centerY + labelRadius * Math.sin(rad);
 
@@ -223,7 +257,6 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
 
     // Draw compass labels
     if (directionMode === 'northup') {
-        const compassRadius = maxRadius * 1.25;
         const compass = [
             { angle: 0, label: 'N', color: '#FFD700' },
             { angle: 90, label: 'E', color: '#C0C0C0' },
@@ -233,6 +266,8 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
 
         compass.forEach(c => {
             const rad = toRadians(c.angle);
+            const maxR = getEllipseRadius(c.angle, maxRadiusX, maxRadiusY);
+            const compassRadius = maxR * 1.25;
             const x = centerX + compassRadius * Math.cos(rad);
             const y = centerY + compassRadius * Math.sin(rad);
 
@@ -248,7 +283,9 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
     if (vesselSpeed > 0) {
         const vesselAngle = directionMode === 'northup' ? vesselHeading : 0;
         const vesselRad = toRadians(vesselAngle);
-        const vesselR = minRadius + (maxRadius - minRadius) * (vesselSpeed / maxSpeed);
+        const maxR = getEllipseRadius(vesselAngle, maxRadiusX, maxRadiusY);
+        const minR = getEllipseRadius(vesselAngle, minRadiusX, minRadiusY);
+        const vesselR = minR + (maxR - minR) * (vesselSpeed / maxSpeed);
 
         const vx = centerX + vesselR * Math.cos(vesselRad);
         const vy = centerY + vesselR * Math.sin(vesselRad);
@@ -281,7 +318,8 @@ window.polarChart.renderChart = function (containerId, chartDataOrJson) {
 
     // Draw wave direction
     const waveRad = toRadians(waveDirection);
-    const waveR = maxRadius * 1.08;
+    const maxRWave = getEllipseRadius(waveDirection, maxRadiusX, maxRadiusY);
+    const waveR = maxRWave * 1.08;
     const wx = centerX + waveR * Math.cos(waveRad);
     const wy = centerY + waveR * Math.sin(waveRad);
 
