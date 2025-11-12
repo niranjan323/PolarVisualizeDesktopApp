@@ -10,7 +10,6 @@
 <PageTitle>Polar Response Visualization</PageTitle>
 
 <div class="container-fluid p-3">
-    <!-- Main Application UI -->
     <div class="row">
         <!-- Left Panel - Controls -->
         <div class="col-md-3 col-lg-2">
@@ -26,7 +25,6 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <!-- Draft Selection -->
                     <div class="mb-3">
                         <label class="form-label">Draft Category</label>
                         <SfDropDownList TValue="string" TItem="string"
@@ -44,40 +42,28 @@
                         }
                     </div>
 
-                    <!-- Draft Aft Peak -->
                     <div class="mb-3">
                         <label class="form-label">Draft Aft Peak (m)</label>
-                        <SfNumericTextBox TValue="double"
-                                          @bind-Value="parameters.DraftAftPeak"
-                                          Min="0" Max="30" Step="0.1"
-                                          Format="F1"
-                                          CssClass="e-outline"
-                                          ShowSpinButton="true">
+                        <SfNumericTextBox TValue="double" @bind-Value="parameters.DraftAftPeak"
+                                          Min="0" Max="30" Step="0.1" Format="F1"
+                                          CssClass="e-outline" ShowSpinButton="true">
                         </SfNumericTextBox>
                     </div>
 
-                    <!-- Draft Fore Peak -->
                     <div class="mb-3">
                         <label class="form-label">Draft Fore Peak (m)</label>
-                        <SfNumericTextBox TValue="double"
-                                          @bind-Value="parameters.DraftForePeak"
-                                          Min="0" Max="30" Step="0.1"
-                                          Format="F1"
-                                          CssClass="e-outline"
-                                          ShowSpinButton="true">
+                        <SfNumericTextBox TValue="double" @bind-Value="parameters.DraftForePeak"
+                                          Min="0" Max="30" Step="0.1" Format="F1"
+                                          CssClass="e-outline" ShowSpinButton="true">
                         </SfNumericTextBox>
                     </div>
 
-                    <!-- GM -->
                     <div class="mb-3">
                         <label class="form-label">Metacentric Height, GM (m)</label>
-                        <SfNumericTextBox TValue="double"
-                                          @bind-Value="parameters.GM"
+                        <SfNumericTextBox TValue="double" @bind-Value="parameters.GM"
                                           Min="@parameterBounds.GM_lower" Max="@parameterBounds.GM_upper"
-                                          Step="0.5"
-                                          Format="F1"
-                                          CssClass="e-outline"
-                                          ShowSpinButton="true">
+                                          Step="0.5" Format="F1"
+                                          CssClass="e-outline" ShowSpinButton="true">
                         </SfNumericTextBox>
                         @if (parameterBounds.GM_lower > 0)
                         {
@@ -87,40 +73,28 @@
                         }
                     </div>
 
-                    <!-- Heading -->
                     <div class="mb-3">
                         <label class="form-label">Heading (degree)</label>
-                        <SfNumericTextBox TValue="double"
-                                          @bind-Value="vesselHeading"
-                                          Min="0" Max="360" Step="1"
-                                          Format="F0"
-                                          CssClass="e-outline"
-                                          ShowSpinButton="true">
+                        <SfNumericTextBox TValue="double" @bind-Value="vesselHeading"
+                                          Min="0" Max="360" Step="1" Format="F0"
+                                          CssClass="e-outline" ShowSpinButton="true">
                         </SfNumericTextBox>
                         <small class="form-text text-muted">Clockwise from North to Bow</small>
                     </div>
 
-                    <!-- Speed -->
                     <div class="mb-3">
                         <label class="form-label">Speed (kn)</label>
-                        <SfNumericTextBox TValue="double"
-                                          @bind-Value="vesselSpeed"
-                                          Min="0" Max="30" Step="0.5"
-                                          Format="F1"
-                                          CssClass="e-outline"
-                                          ShowSpinButton="true">
+                        <SfNumericTextBox TValue="double" @bind-Value="vesselSpeed"
+                                          Min="0" Max="30" Step="0.5" Format="F1"
+                                          CssClass="e-outline" ShowSpinButton="true">
                         </SfNumericTextBox>
                     </div>
 
-                    <!-- Maximum Roll -->
                     <div class="mb-3">
                         <label class="form-label">Maximum Allowed Roll Angle (degree)</label>
-                        <SfNumericTextBox TValue="double"
-                                          @bind-Value="maxRollAngle"
-                                          Min="0" Max="30" Step="1"
-                                          Format="F0"
-                                          CssClass="e-outline"
-                                          ShowSpinButton="true">
+                        <SfNumericTextBox TValue="double" @bind-Value="maxRollAngle"
+                                          Min="0" Max="30" Step="1" Format="F0"
+                                          CssClass="e-outline" ShowSpinButton="true">
                         </SfNumericTextBox>
                     </div>
                 </div>
@@ -129,16 +103,12 @@
                     <h5 class="mb-0">Sea State</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Significant Wave Height -->
                     <div class="mb-3">
                         <label class="form-label">Significant Wave Height, Hs (m)</label>
-                        <SfNumericTextBox TValue="double"
-                                          @bind-Value="parameters.Hs"
+                        <SfNumericTextBox TValue="double" @bind-Value="parameters.Hs"
                                           Min="@parameterBounds.Hs_lower" Max="@parameterBounds.Hs_upper"
-                                          Step="0.5"
-                                          Format="F1"
-                                          CssClass="e-outline"
-                                          ShowSpinButton="true">
+                                          Step="0.5" Format="F1"
+                                          CssClass="e-outline" ShowSpinButton="true">
                         </SfNumericTextBox>
                         @if (parameterBounds.Hs_lower > 0)
                         {
@@ -148,16 +118,12 @@
                         }
                     </div>
 
-                    <!-- Mean Wave Period -->
                     <div class="mb-3">
                         <label class="form-label">Mean Wave Period, Tz (s)</label>
-                        <SfNumericTextBox TValue="double"
-                                          @bind-Value="parameters.Tz"
+                        <SfNumericTextBox TValue="double" @bind-Value="parameters.Tz"
                                           Min="@parameterBounds.Tz_lower" Max="@parameterBounds.Tz_upper"
-                                          Step="0.5"
-                                          Format="F1"
-                                          CssClass="e-outline"
-                                          ShowSpinButton="true">
+                                          Step="0.5" Format="F1"
+                                          CssClass="e-outline" ShowSpinButton="true">
                         </SfNumericTextBox>
                         @if (parameterBounds.Tz_lower > 0)
                         {
@@ -167,15 +133,11 @@
                         }
                     </div>
 
-                    <!-- Mean Wave Direction -->
                     <div class="mb-3">
                         <label class="form-label">Mean Wave Direction (degree)</label>
-                        <SfNumericTextBox TValue="double"
-                                          @bind-Value="waveDirection"
-                                          Min="0" Max="360" Step="1"
-                                          Format="F0"
-                                          CssClass="e-outline"
-                                          ShowSpinButton="true">
+                        <SfNumericTextBox TValue="double" @bind-Value="waveDirection"
+                                          Min="0" Max="360" Step="1" Format="F0"
+                                          CssClass="e-outline" ShowSpinButton="true">
                         </SfNumericTextBox>
                         <small class="form-text text-muted">Clockwise from North</small>
                     </div>
@@ -185,7 +147,6 @@
                     <h5 class="mb-0">Display Options</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Display Mode -->
                     <div class="mb-3">
                         <label class="form-label">Plot Mode</label>
                         <div>
@@ -208,7 +169,6 @@
                         </div>
                     </div>
 
-                    <!-- Direction Display -->
                     <div class="mb-3">
                         <label class="form-label">Direction</label>
                         <div>
@@ -256,7 +216,7 @@
         <!-- Center Panel - Chart -->
         <div class="col-md-6 col-lg-7">
             <div class="card bg-dark text-white" style="height: 750px;">
-                <div class="card-body p-2">
+                <div class="card-body p-2 position-relative">
                     @if (controlFileError != null)
                     {
                         <div class="alert alert-warning" role="alert">
@@ -275,7 +235,7 @@
                     {
                         <div class="d-flex align-items-center justify-content-center h-100">
                             <div class="text-center text-muted">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-compass" viewBox="0 0 16 16">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
                                     <path d="M8 16.016a7.5 7.5 0 0 0 1.962-14.74A1 1 0 0 0 9 0H7a1 1 0 0 0-.962 1.276A7.5 7.5 0 0 0 8 16.016zm6.5-7.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z" />
                                     <path d="m6.94 7.44 4.95-2.83-2.83 4.95-4.949 2.83 2.828-4.95z" />
                                 </svg>
@@ -292,42 +252,38 @@
                                  Height="700px"
                                  Theme="Syncfusion.Blazor.Theme.Bootstrap5Dark">
 
-                            <ChartArea>
-                                <ChartAreaBorder Width="0"></ChartAreaBorder>
-                            </ChartArea>
+                            <ChartArea><ChartAreaBorder Width="0"></ChartAreaBorder></ChartArea>
 
                             <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Double"
-                                               Minimum="0"
-                                               Maximum="360"
-                                               Interval="30"
+                                               Minimum="0" Maximum="360" Interval="30"
                                                LabelFormat="{value}°"
-                                               StartAngle="@startAngle"
-                                               Coefficient="@coefficient">
+                                               StartAngle="0">
                                 <ChartAxisMajorGridLines Width="1" Color="#555"></ChartAxisMajorGridLines>
                                 <ChartAxisLabelStyle Color="#ffffff" Size="12px"></ChartAxisLabelStyle>
                             </ChartPrimaryXAxis>
 
-                            <ChartPrimaryYAxis Minimum="0"
-                                               Maximum="@maxSpeed"
-                                               Interval="5"
+                            <ChartPrimaryYAxis Minimum="0" Maximum="@maxSpeed" Interval="5"
                                                LabelFormat="{value} kn">
                                 <ChartAxisMajorGridLines Width="1" Color="#555"></ChartAxisMajorGridLines>
                                 <ChartAxisLabelStyle Color="#ffffff" Size="12px"></ChartAxisLabelStyle>
                             </ChartPrimaryYAxis>
 
                             <ChartSeriesCollection>
-                                <!-- Main data points with color coding -->
-                                <ChartSeries DataSource="@chartDataPoints"
-                                             XName="Angle"
-                                             YName="Speed"
-                                             Type="ChartSeriesType.Polar"
-                                             DrawType="ChartDrawType.Scatter"
-                                             PointColorMapping="Color">
-                                    <ChartMarker Height="8" Width="8">
-                                    </ChartMarker>
-                                </ChartSeries>
+                                @* Render filled area series for each color zone *@
+                                @foreach (var series in contourSeries)
+                                {
+                                    <ChartSeries DataSource="@series.Points"
+                                                 XName="Angle"
+                                                 YName="Speed"
+                                                 Type="ChartSeriesType.Polar"
+                                                 DrawType="ChartDrawType.Area"
+                                                 Fill="@series.Color"
+                                                 Opacity="@series.Opacity">
+                                        <ChartSeriesBorder Width="0"></ChartSeriesBorder>
+                                    </ChartSeries>
+                                }
 
-                                <!-- Vessel position marker -->
+                                @* Vessel marker *@
                                 @if (vesselSpeed > 0)
                                 {
                                     <ChartSeries DataSource="@vesselMarker"
@@ -342,108 +298,84 @@
                                     </ChartSeries>
                                 }
 
-                                <!-- Wave direction marker -->
+                                @* Wave marker *@
                                 <ChartSeries DataSource="@waveMarker"
                                              XName="Angle"
                                              YName="Speed"
                                              Type="ChartSeriesType.Polar"
                                              DrawType="ChartDrawType.Scatter"
-                                             Fill="#FF1493">
+                                             Fill="#4FC3F7">
                                     <ChartMarker Height="18" Width="18" Shape="ChartShape.Triangle">
                                         <ChartMarkerBorder Color="#FFFFFF" Width="2"></ChartMarkerBorder>
                                     </ChartMarker>
                                 </ChartSeries>
                             </ChartSeriesCollection>
 
-                            <ChartTooltipSettings Enable="true"
-                                                  Format="Heading: ${point.x}°<br/>Speed: ${point.y} kn<br/>Roll: ${point.tooltip}°">
-                            </ChartTooltipSettings>
-
+                            <ChartTooltipSettings Enable="false"></ChartTooltipSettings>
                             <ChartLegendSettings Visible="false"></ChartLegendSettings>
-
-                            <!-- Add compass labels as annotations -->
-                        <ChartAnnotations>
-                            @if (directionMode == "northup")
-                            {
-                                <ChartAnnotation X="50" Y="5" Region="Syncfusion.Blazor.Charts.Regions.Chart">
-                                    <ContentTemplate>
-                                        <div style="color: #FFD700; font-weight: bold; font-size: 20px;">N</div>
-                                    </ContentTemplate>
-                                </ChartAnnotation>
-                                <ChartAnnotation X="350" Y="200" Region="Syncfusion.Blazor.Charts.Regions.Chart">
-                                    <ContentTemplate>
-                                        <div style="color: #C0C0C0; font-weight: bold; font-size: 18px;">E</div>
-                                    </ContentTemplate>
-                                </ChartAnnotation>
-                                <ChartAnnotation X="50" Y="400" Region="Syncfusion.Blazor.Charts.Regions.Chart">
-                                    <ContentTemplate>
-                                        <div style="color: #C0C0C0; font-weight: bold; font-size: 18px;">S</div>
-                                    </ContentTemplate>
-                                </ChartAnnotation>
-                                <ChartAnnotation X="5" Y="200" Region="Syncfusion.Blazor.Charts.Regions.Chart">
-                                    <ContentTemplate>
-                                        <div style="color: #C0C0C0; font-weight: bold; font-size: 18px;">W</div>
-                                    </ContentTemplate>
-                                </ChartAnnotation>
-                            }
-                        </ChartAnnotations>
                         </SfChart>
 
                         <!-- Legend -->
-                        <div style="position: absolute; top: 50px; left: 20px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px;">
+                        <div style="position: absolute; top: 60px; left: 30px; background: rgba(0,0,0,0.8); padding: 12px; border-radius: 5px; z-index: 1000;">
                             @if (displayMode == "trafficlight")
                             {
-                                <div style="display: flex; flex-direction: column; gap: 5px;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div style="width: 20px; height: 20px; background: #2ecc71;"></div>
-                                        <span style="color: white; font-size: 11px;">Safe (0-@((maxRollAngle - 5).ToString("F0"))°)</span>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 24px; height: 24px; background: #2ecc71; border-radius: 3px;"></div>
+                                        <span style="color: white; font-size: 12px;">Safe (0-@((maxRollAngle - 5).ToString("F0"))°)</span>
                                     </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div style="width: 20px; height: 20px; background: #f39c12;"></div>
-                                        <span style="color: white; font-size: 11px;">Caution (@((maxRollAngle - 5).ToString("F0"))-@(maxRollAngle.ToString("F0"))°)</span>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 24px; height: 24px; background: #f39c12; border-radius: 3px;"></div>
+                                        <span style="color: white; font-size: 12px;">Caution (@((maxRollAngle - 5).ToString("F0"))-@(maxRollAngle.ToString("F0"))°)</span>
                                     </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div style="width: 20px; height: 20px; background: #e74c3c;"></div>
-                                        <span style="color: white; font-size: 11px;">Danger (&gt;@(maxRollAngle.ToString("F0"))°)</span>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 24px; height: 24px; background: #e74c3c; border-radius: 3px;"></div>
+                                        <span style="color: white; font-size: 12px;">Danger (&gt;@(maxRollAngle.ToString("F0"))°)</span>
                                     </div>
                                 </div>
                             }
                             else
                             {
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="width: 20px; height: 120px; background: linear-gradient(to top, #0d47a1, #00bcd4, #ffeb3b, #ff9800, #d32f2f);"></div>
-                                    <div style="display: flex; flex-direction: column; justify-content: space-between; height: 120px; color: white; font-size: 11px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 24px; height: 140px; background: linear-gradient(to top, #0d47a1, #00bcd4, #ffeb3b, #ff9800, #d32f2f); border-radius: 3px;"></div>
+                                    <div style="display: flex; flex-direction: column; justify-content: space-between; height: 140px; color: white; font-size: 12px;">
                                         <span>@maxRollAngle.ToString("F0")°</span>
                                         <span>0°</span>
                                     </div>
                                 </div>
                             }
                         </div>
+
+                        <!-- Compass Labels -->
+                        @if (directionMode == "northup")
+                        {
+                            <div style="position: absolute; top: 40px; left: 50%; transform: translateX(-50%); color: #FFD700; font-weight: bold; font-size: 22px; z-index: 1000;">N</div>
+                            <div style="position: absolute; top: 50%; right: 60px; transform: translateY(-50%); color: #C0C0C0; font-weight: bold; font-size: 20px; z-index: 1000;">E</div>
+                            <div style="position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%); color: #C0C0C0; font-weight: bold; font-size: 20px; z-index: 1000;">S</div>
+                            <div style="position: absolute; top: 50%; left: 60px; transform: translateY(-50%); color: #C0C0C0; font-weight: bold; font-size: 20px; z-index: 1000;">W</div>
+                        }
                     }
                 </div>
             </div>
 
-            <!-- Case Selector at Bottom -->
+            <!-- Case Selector -->
             @if (hasData && savedCases.Count > 0)
             {
                 <div class="card bg-dark text-white mt-2">
                     <div class="card-body p-2">
                         <div class="d-flex align-items-center justify-content-between">
                             <SfButton Content="<<" CssClass="e-small" @onclick="PreviousCase"></SfButton>
-
                             @for (int i = 0; i < savedCases.Count; i++)
                             {
                                 var index = i;
                                 var isActive = index == currentCaseIndex;
                                 var statusColor = savedCases[i].IsInDangerZone ? "e-danger" : "e-success";
                                 var cssClass = isActive ? "e-primary" : statusColor;
-
                                 <SfButton Content="@($"Case {i + 1}")"
                                           CssClass="@($"e-small {cssClass}")"
                                           @onclick="() => LoadCase(index)">
                                 </SfButton>
                             }
-
                             <SfButton Content=">>" CssClass="e-small" @onclick="NextCase"></SfButton>
                         </div>
                     </div>
@@ -472,25 +404,21 @@
 </div>
 
 @code {
-    // Control file data
     private VesselInfo? vesselInfo = null;
     private RepresentativeDraft? representativeDrafts = null;
     private ParameterBound parameterBounds = new();
     private string? controlFileError = null;
-
-    // Chart reference
     private SfChart? chartRef;
 
-    // Application state
     private PolarLoadParameters parameters = new()
-        {
-            Draft = "scantling",
-            GM = 1.5,
-            Hs = 5.5,
-            Tz = 7.5,
-            DraftAftPeak = 0.5,
-            DraftForePeak = 0.5
-        };
+    {
+        Draft = "scantling",
+        GM = 1.5,
+        Hs = 5.5,
+        Tz = 7.5,
+        DraftAftPeak = 0.5,
+        DraftForePeak = 0.5
+    };
 
     private double vesselHeading = 5;
     private double vesselSpeed = 10;
@@ -504,32 +432,23 @@
     private string? errorMessage = null;
     private PolarLoadResult? loadResult = null;
 
-    // Chart data
-    private List<PolarChartData> chartDataPoints = new();
+    private List<ContourSeries> contourSeries = new();
     private List<PolarChartData> vesselMarker = new();
     private List<PolarChartData> waveMarker = new();
     private double maxSpeed = 20;
-    private double startAngle = 90;
-    private double coefficient = 100;
 
-    // Case management
     private List<SavedCase> savedCases = new();
     private int currentCaseIndex = 0;
-
-    // Dropdown options
     private List<string> draftOptions = new() { "scantling", "design", "intermediate" };
 
-    // Color palettes
-    private string[] continuousColors = new[]
+    public class ContourSeries
     {
-        "#0d47a1", "#1565c0", "#1976d2", "#1e88e5", "#2196f3",
-        "#42a5f5", "#64b5f6", "#90caf9", "#bbdefb", "#e3f2fd",
-        "#ffffbf", "#fff59d", "#fff176", "#ffee58", "#ffeb3b",
-        "#fdd835", "#fbc02d", "#f9a825", "#f57f17", "#ff6f00",
-        "#ff8f00", "#ffa726", "#ffb74d", "#ffcc80", "#ffe0b2",
-        "#ffab91", "#ff8a65", "#ff7043", "#ff5722", "#f4511e",
-        "#e64a19", "#d84315", "#bf360c", "#a50026", "#8b0000"
-    };
+        public List<PolarChartData> Points { get; set; } = new();
+        public string Color { get; set; } = "";
+        public double Opacity { get; set; } = 0.8;
+        public double MinRoll { get; set; }
+        public double MaxRoll { get; set; }
+    }
 
     public class SavedCase
     {
@@ -543,8 +462,6 @@
         public double Angle { get; set; }
         public double Speed { get; set; }
         public double Roll { get; set; }
-        public string Color { get; set; } = "#ffffff";
-        public string Tooltip { get; set; } = "";
     }
 
     protected override async Task OnInitializedAsync()
@@ -589,14 +506,14 @@
             {
                 controlFileError = "Control file not found in data folder. Using default parameters.";
                 parameterBounds = new ParameterBound
-                    {
-                        GM_lower = 0.5,
-                        GM_upper = 5.0,
-                        Hs_lower = 3.0,
-                        Hs_upper = 12.0,
-                        Tz_lower = 5.0,
-                        Tz_upper = 18.0
-                    };
+                {
+                    GM_lower = 0.5,
+                    GM_upper = 5.0,
+                    Hs_lower = 3.0,
+                    Hs_upper = 12.0,
+                    Tz_lower = 5.0,
+                    Tz_upper = 18.0
+                };
             }
         }
         catch (Exception ex)
@@ -650,135 +567,198 @@
 
     private void PrepareChartData()
     {
-        if (loadResult?.Data == null)
-            return;
+        if (loadResult?.Data == null) return;
 
         var data = loadResult.Data;
-        chartDataPoints.Clear();
+        contourSeries.Clear();
         vesselMarker.Clear();
         waveMarker.Clear();
 
-        // Set chart ranges
         maxSpeed = Math.Ceiling(data.Speeds.Max() * 1.1);
-        startAngle = directionMode == "northup" ? 90 : 90; // Always 90 for polar
-        coefficient = 100;
 
-        // Prepare main data points
-        for (int i = 0; i < data.SpeedCount; i++)
+        // Create contour series
+        if (displayMode == "trafficlight")
         {
-            for (int j = 0; j < data.HeadingCount; j++)
-            {
-                double displayAngle = CalculateDisplayAngle(data.Headings[j]);
-                double rollValue = data.MaxRoll[i, j];
-                string color = GetColorForRoll(rollValue);
-
-                chartDataPoints.Add(new PolarChartData
-                    {
-                        Angle = displayAngle,
-                        Speed = data.Speeds[i],
-                        Roll = rollValue,
-                        Color = color,
-                        Tooltip = rollValue.ToString("F2")
-                    });
-            }
-        }
-
-        // Add vessel marker
-        if (vesselSpeed > 0)
-        {
-            double vesselAngle = directionMode == "northup" ? vesselHeading : 0;
-            vesselMarker.Add(new PolarChartData
-                {
-                    Angle = vesselAngle,
-                    Speed = vesselSpeed,
-                    Roll = 0,
-                    Color = "#FFFFFF",
-                    Tooltip = "Vessel Position"
-                });
-        }
-
-        // Add wave direction marker
-        double waveDisplayAngle = directionMode == "northup" ? waveDirection : (waveDirection - vesselHeading);
-        while (waveDisplayAngle < 0) waveDisplayAngle += 360;
-        while (waveDisplayAngle >= 360) waveDisplayAngle -= 360;
-
-        waveMarker.Add(new PolarChartData
-            {
-                Angle = waveDisplayAngle,
-                Speed = maxSpeed * 0.95,
-                Roll = 0,
-                Color = "#FF1493",
-                Tooltip = "Wave Direction"
-            });
-    }
-
-    private double CalculateDisplayAngle(double headingFromData)
-    {
-        double angle;
-
-        if (directionMode == "northup")
-        {
-            angle = 180 + (vesselHeading - headingFromData);
+            CreateTrafficLightContours(data);
         }
         else
         {
-            angle = 180 - headingFromData;
+            CreateContinuousContours(data);
         }
 
-        while (angle < 0) angle += 360;
-        while (angle >= 360) angle -= 360;
+        // Vessel marker
+        if (vesselSpeed > 0)
+        {
+            double vesselAngle = directionMode == "northup" ? vesselHeading : 0;
+            vesselMarker.Add(new PolarChartData { Angle = vesselAngle, Speed = vesselSpeed, Roll = 0 });
+        }
 
-        return angle;
+        // Wave marker
+        double waveDisplayAngle = directionMode == "northup" ? waveDirection : (waveDirection - vesselHeading);
+        while (waveDisplayAngle < 0) waveDisplayAngle += 360;
+        while (waveDisplayAngle >= 360) waveDisplayAngle -= 360;
+        waveMarker.Add(new PolarChartData { Angle = waveDisplayAngle, Speed = maxSpeed * 0.92, Roll = 0 });
     }
 
-    private string GetColorForRoll(double rollValue)
+    private void CreateTrafficLightContours(ResponseMatrix data)
     {
-        if (displayMode == "trafficlight")
+        var greenZone = new ContourSeries { Color = "#2ecc71", Opacity = 0.75, MinRoll = 0, MaxRoll = maxRollAngle - 5 };
+        var yellowZone = new ContourSeries { Color = "#f39c12", Opacity = 0.75, MinRoll = maxRollAngle - 5, MaxRoll = maxRollAngle };
+        var redZone = new ContourSeries { Color = "#e74c3c", Opacity = 0.75, MinRoll = maxRollAngle, MaxRoll = 999 };
+
+        // Create complete 360° coverage with interpolation
+        int angleStep = 5; // Generate points every 5 degrees
+        
+        for (int angle = 0; angle < 360; angle += angleStep)
         {
-            if (rollValue < maxRollAngle - 5)
-                return "#2ecc71"; // Green
-            else if (rollValue < maxRollAngle)
-                return "#f39c12"; // Orange
-            else
-                return "#e74c3c"; // Red
+            // Find or interpolate the boundaries for this angle
+            double greenBoundary = InterpolateBoundaryAtAngle(data, angle, greenZone.MaxRoll);
+            double yellowBoundary = InterpolateBoundaryAtAngle(data, angle, yellowZone.MaxRoll);
+
+            if (greenBoundary > 0)
+                greenZone.Points.Add(new PolarChartData { Angle = angle, Speed = greenBoundary });
+            
+            if (yellowBoundary > greenBoundary)
+                yellowZone.Points.Add(new PolarChartData { Angle = angle, Speed = yellowBoundary });
+            
+            // Red zone always extends to max speed
+            redZone.Points.Add(new PolarChartData { Angle = angle, Speed = maxSpeed });
         }
-        else // continuous
+
+        // Close contours by adding first point at end
+        if (greenZone.Points.Count > 0)
+            greenZone.Points.Add(new PolarChartData { Angle = 0, Speed = greenZone.Points[0].Speed });
+        
+        if (yellowZone.Points.Count > 0)
+            yellowZone.Points.Add(new PolarChartData { Angle = 0, Speed = yellowZone.Points[0].Speed });
+        
+        if (redZone.Points.Count > 0)
+            redZone.Points.Add(new PolarChartData { Angle = 0, Speed = redZone.Points[0].Speed });
+
+        contourSeries.Add(redZone);
+        contourSeries.Add(yellowZone);
+        contourSeries.Add(greenZone);
+    }
+
+    private double InterpolateBoundaryAtAngle(ResponseMatrix data, double targetAngle, double rollThreshold)
+    {
+        // Find the two nearest angles in the data
+        int nearestIndex1 = -1;
+        int nearestIndex2 = -1;
+        double minDiff1 = 360;
+        double minDiff2 = 360;
+
+        for (int j = 0; j < data.HeadingCount; j++)
         {
-            double ratio = Math.Min(rollValue / maxRollAngle, 1.0);
-            int colorIndex = (int)(ratio * (continuousColors.Length - 1));
-            colorIndex = Math.Max(0, Math.Min(colorIndex, continuousColors.Length - 1));
-            return continuousColors[colorIndex];
+            double diff = Math.Abs(data.Headings[j] - targetAngle);
+            if (diff > 180) diff = 360 - diff; // Handle wrapping
+
+            if (diff < minDiff1)
+            {
+                minDiff2 = minDiff1;
+                nearestIndex2 = nearestIndex1;
+                minDiff1 = diff;
+                nearestIndex1 = j;
+            }
+            else if (diff < minDiff2)
+            {
+                minDiff2 = diff;
+                nearestIndex2 = j;
+            }
         }
+
+        if (nearestIndex1 < 0) return 0;
+
+        // Get boundary at nearest angle
+        double boundary1 = FindSpeedBoundary(data, nearestIndex1, rollThreshold);
+
+        // If we have a second nearest angle, interpolate
+        if (nearestIndex2 >= 0 && minDiff1 < 30) // Only interpolate if angles are close
+        {
+            double boundary2 = FindSpeedBoundary(data, nearestIndex2, rollThreshold);
+            
+            // Linear interpolation based on angle difference
+            double weight = minDiff1 / (minDiff1 + minDiff2);
+            return boundary1 * (1 - weight) + boundary2 * weight;
+        }
+
+        return boundary1;
+    }
+
+    private void CreateContinuousContours(ResponseMatrix data)
+    {
+        int numBands = 10;
+        string[] colors = new[]
+        {
+            "#0d47a1", "#1976d2", "#42a5f5", "#64b5f6", "#90caf9",
+            "#ffeb3b", "#ff9800", "#ff5722", "#e64a19", "#d32f2f"
+        };
+
+        int angleStep = 5; // Generate points every 5 degrees
+
+        for (int band = 0; band < numBands; band++)
+        {
+            double minRoll = (maxRollAngle * band) / numBands;
+            double maxRoll = (maxRollAngle * (band + 1)) / numBands;
+
+            var series = new ContourSeries
+            {
+                Color = colors[band],
+                Opacity = 0.65,
+                MinRoll = minRoll,
+                MaxRoll = maxRoll
+            };
+
+            for (int angle = 0; angle < 360; angle += angleStep)
+            {
+                double boundary = InterpolateBoundaryAtAngle(data, angle, maxRoll);
+
+                if (boundary > 0)
+                    series.Points.Add(new PolarChartData { Angle = angle, Speed = boundary });
+            }
+
+            // Close contour
+            if (series.Points.Count > 0)
+                series.Points.Add(new PolarChartData { Angle = 0, Speed = series.Points[0].Speed });
+
+            contourSeries.Add(series);
+        }
+
+        contourSeries.Reverse();
+    }
+
+    private double FindSpeedBoundary(ResponseMatrix data, int headingIndex, double rollThreshold)
+    {
+        for (int i = data.SpeedCount - 1; i >= 0; i--)
+        {
+            if (data.MaxRoll[i, headingIndex] <= rollThreshold)
+            {
+                return data.Speeds[i];
+            }
+        }
+        return 0;
     }
 
     private async Task SaveCase()
     {
         var newCase = new SavedCase
+        {
+            Id = $"Case {savedCases.Count + 1}",
+            Parameters = new PolarLoadParameters
             {
-                Id = $"Case {savedCases.Count + 1}",
-                Parameters = new PolarLoadParameters
-                {
-                    Draft = parameters.Draft,
-                    GM = parameters.GM,
-                    Hs = parameters.Hs,
-                    Tz = parameters.Tz,
-                    DraftAftPeak = parameters.DraftAftPeak,
-                    DraftForePeak = parameters.DraftForePeak
-                },
-                IsInDangerZone = CheckIfInDangerZone()
-            };
+                Draft = parameters.Draft,
+                GM = parameters.GM,
+                Hs = parameters.Hs,
+                Tz = parameters.Tz,
+                DraftAftPeak = parameters.DraftAftPeak,
+                DraftForePeak = parameters.DraftForePeak
+            },
+            IsInDangerZone = contourSeries.Any(s => s.MinRoll > maxRollAngle)
+        };
 
         savedCases.Add(newCase);
         currentCaseIndex = savedCases.Count - 1;
         StateHasChanged();
-    }
-
-    private bool CheckIfInDangerZone()
-    {
-        if (chartDataPoints == null || !chartDataPoints.Any())
-            return false;
-
-        return chartDataPoints.Any(p => p.Roll > maxRollAngle);
     }
 
     private void LoadCase(int index)
@@ -793,18 +773,12 @@
 
     private void PreviousCase()
     {
-        if (currentCaseIndex > 0)
-        {
-            LoadCase(currentCaseIndex - 1);
-        }
+        if (currentCaseIndex > 0) LoadCase(currentCaseIndex - 1);
     }
 
     private void NextCase()
     {
-        if (currentCaseIndex < savedCases.Count - 1)
-        {
-            LoadCase(currentCaseIndex + 1);
-        }
+        if (currentCaseIndex < savedCases.Count - 1) LoadCase(currentCaseIndex + 1);
     }
 
     private async Task ExportChart()
