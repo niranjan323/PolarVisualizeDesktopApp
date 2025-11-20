@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36127.28 d17.14
+VisualStudioVersion = 17.14.36127.28
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolarVisualizeDesktopApp", "PolarVisualizeDesktopApp\PolarVisualizeDesktopApp.csproj", "{10D63BDD-D2C4-4669-B63B-A47C495B22B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp1", "BlazorApp1\BlazorApp1.csproj", "{34482116-99CF-49DF-A57A-B4A2E0F381F9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{10D63BDD-D2C4-4669-B63B-A47C495B22B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10D63BDD-D2C4-4669-B63B-A47C495B22B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10D63BDD-D2C4-4669-B63B-A47C495B22B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34482116-99CF-49DF-A57A-B4A2E0F381F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34482116-99CF-49DF-A57A-B4A2E0F381F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34482116-99CF-49DF-A57A-B4A2E0F381F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34482116-99CF-49DF-A57A-B4A2E0F381F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
