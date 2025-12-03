@@ -466,10 +466,53 @@
 
     protected override async Task OnInitializedAsync()
     {
-        LoadControlFileFromDataFolder();
+        //LoadControlFileFromDataFolder();
+         await LoadControlFileFromEmbeddedResources();
         await base.OnInitializedAsync();
     }
+     // ADD THIS NEW METHOD:
+    private async Task LoadControlFileFromEmbeddedResources()
+    {
+        try
+        {
+            // Load from embedded resources
+            bool success = await PolarService.LoadControlFileAsync("proll.ctl");
+            
+            if (success)
+            {
+                vesselInfo = PolarService.GetVesselInfo();
+                representativeDrafts = PolarService.GetRepresentativeDrafts();
+                parameterBounds = PolarService.GetParameterBounds();
+                controlFileError = null;
+            }
+            else
+            {
+                controlFileError = "Failed to load control file from embedded resources. Using default parameters.";
+                SetDefaultParameterBounds();
+            }
+        }
+        catch (Exception ex)
+        {
+            controlFileError = $"Error loading control file: {ex.Message}";
+            SetDefaultParameterBounds();
+        }
+    }
 
+    // ============================================
+    // ✅ NEW METHOD: Add this helper
+    // ============================================
+    private void SetDefaultParameterBounds()
+    {
+        parameterBounds = new ParameterBound
+        {
+            GM_lower = 0.5,
+            GM_upper = 5.0,
+            Hs_lower = 3.0,
+            Hs_upper = 12.0,
+            Tz_lower = 5.0,
+            Tz_upper = 18.0
+        };
+    }
     private void LoadControlFileFromDataFolder()
     {
         try
@@ -531,7 +574,7 @@
         }
     }
 
-    private async Task LoadAndRenderData()
+     private async Task LoadAndRenderData()
     {
         isLoading = true;
         errorMessage = null;
@@ -542,7 +585,9 @@
 
         try
         {
-            loadResult = PolarService.LoadPolarData(parameters);
+            // OLD: loadResult = PolarService.LoadPolarData(parameters);
+            // NEW: Use async method
+            loadResult = await PolarService.LoadPolarDataAsync(parameters);
 
             if (!loadResult.Success)
             {

@@ -95,4 +95,83 @@ public static class PolarFileReader
             return null;
         }
     }
+
+    // ============================================
+    // NEW METHOD - Add this for embedded resources
+    // ============================================
+    public static ResponseMatrix ReadPolarFileFromBytes(byte[] fileData, string sourceName = "embedded")
+    {
+        if (fileData == null || fileData.Length == 0)
+        {
+            throw new ArgumentException("File data is empty or null");
+        }
+
+        var response = new ResponseMatrix { SourceFile = sourceName };
+
+        try
+        {
+            using var memoryStream = new MemoryStream(fileData);
+            using var reader = new BinaryReader(memoryStream, Encoding.UTF8);
+
+            // Read header information
+            string header1 = reader.ReadString();
+            string header2 = reader.ReadString();
+
+            // Read dimensions
+            response.SpeedCount = reader.ReadInt32();
+            response.HeadingCount = reader.ReadInt32();
+
+            // Validate dimensions
+            if (response.SpeedCount <= 0 || response.SpeedCount > 100)
+                throw new InvalidDataException($"Invalid speed count: {response.SpeedCount}");
+
+            if (response.HeadingCount <= 0 || response.HeadingCount > 360)
+                throw new InvalidDataException($"Invalid heading count: {response.HeadingCount}");
+
+            // Read status string
+            string status = reader.ReadString();
+
+            // Initialize arrays
+            response.Speeds = new double[response.SpeedCount];
+            response.Headings = new double[response.HeadingCount];
+            response.MaxRoll = new double[response.SpeedCount, response.HeadingCount];
+
+            // Read data matrix
+            // Data is stored as [heading][speed] in the file
+            for (int j = 0; j < response.HeadingCount; j++)
+            {
+                for (int i = 0; i < response.SpeedCount; i++)
+                {
+                    response.Speeds[i] = reader.ReadDouble();
+                    response.Headings[j] = reader.ReadDouble();
+                    response.MaxRoll[i, j] = reader.ReadDouble();
+                }
+            }
+
+            return response;
+        }
+        catch (EndOfStreamException ex)
+        {
+            throw new InvalidDataException($"Unexpected end of stream while reading binary data", ex);
+        }
+        catch (Exception ex) when (ex is not InvalidDataException)
+        {
+            throw new InvalidDataException($"Error reading polar file from bytes", ex);
+        }
+    }
+
+    // ============================================
+    // NEW METHOD - Try read from bytes
+    // ============================================
+    public static ResponseMatrix? TryReadPolarFileFromBytes(byte[] fileData, string sourceName = "embedded")
+    {
+        try
+        {
+            return ReadPolarFileFromBytes(fileData, sourceName);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
