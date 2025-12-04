@@ -3,6 +3,11 @@
 @inject PolarService PolarService
 @inject IJSRuntime JSRuntime
 
+@* @page "/"
+@using PolarVisualizeDesktopApp.Services
+@inject PolarService PolarService
+@inject IJSRuntime JSRuntime
+
 <PageTitle>Polar Response Visualization</PageTitle>
 
 <div class="container-fluid p-3">
@@ -584,4 +589,4 @@
             await JSRuntime.InvokeVoidAsync("alert", $"Export failed: {ex.Message}");
         }
     }
-}
+} *@

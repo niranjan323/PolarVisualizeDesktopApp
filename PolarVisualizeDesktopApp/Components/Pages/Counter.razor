@@ -269,7 +269,6 @@
                             </ChartPrimaryYAxis>
 
                             <ChartSeriesCollection>
-                                @* Render filled area series for each color zone *@
                                 @foreach (var series in contourSeries)
                                 {
                                     <ChartSeries DataSource="@series.Points"
@@ -283,7 +282,6 @@
                                     </ChartSeries>
                                 }
 
-                                @* Vessel marker *@
                                 @if (vesselSpeed > 0)
                                 {
                                     <ChartSeries DataSource="@vesselMarker"
@@ -298,7 +296,6 @@
                                     </ChartSeries>
                                 }
 
-                                @* Wave marker *@
                                 <ChartSeries DataSource="@waveMarker"
                                              XName="Angle"
                                              YName="Speed"
@@ -315,7 +312,6 @@
                             <ChartLegendSettings Visible="false"></ChartLegendSettings>
                         </SfChart>
 
-                        <!-- Legend -->
                         <div style="position: absolute; top: 60px; left: 30px; background: rgba(0,0,0,0.8); padding: 12px; border-radius: 5px; z-index: 1000;">
                             @if (displayMode == "trafficlight")
                             {
@@ -346,7 +342,6 @@
                             }
                         </div>
 
-                        <!-- Compass Labels -->
                         @if (directionMode == "northup")
                         {
                             <div style="position: absolute; top: 40px; left: 50%; transform: translateX(-50%); color: #FFD700; font-weight: bold; font-size: 22px; z-index: 1000;">N</div>
@@ -358,7 +353,6 @@
                 </div>
             </div>
 
-            <!-- Case Selector -->
             @if (hasData && savedCases.Count > 0)
             {
                 <div class="card bg-dark text-white mt-2">
@@ -383,7 +377,6 @@
             }
         </div>
 
-        <!-- Right Panel - Info -->
         <div class="col-md-3 col-lg-3">
             @if (loadResult != null && loadResult.Success)
             {
@@ -410,14 +403,14 @@
     private string? controlFileError = null;
     private SfChart? chartRef;
 
-    private PolarLoadParameters parameters = new()
+    private PolarLoadParameters parameters = new PolarLoadParameters
     {
         Draft = "scantling",
         GM = 1.5,
         Hs = 5.5,
         Tz = 7.5,
-        DraftAftPeak = 0.5,
-        DraftForePeak = 0.5
+        DraftAftPeak = 0,
+        DraftForePeak = 0
     };
 
     private double vesselHeading = 5;
@@ -466,18 +459,31 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //LoadControlFileFromDataFolder();
-         await LoadControlFileFromEmbeddedResources();
+        await LoadControlFileFromEmbeddedResources();
         await base.OnInitializedAsync();
     }
-     // ADD THIS NEW METHOD:
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            parameters.Draft = "scantling";
+            parameters.GM = 1.5;
+            parameters.Hs = 5.5;
+            parameters.Tz = 7.5;
+            parameters.DraftAftPeak = 0;
+            parameters.DraftForePeak = 0;
+            StateHasChanged();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
     private async Task LoadControlFileFromEmbeddedResources()
     {
         try
         {
-            // Load from embedded resources
             bool success = await PolarService.LoadControlFileAsync("proll.ctl");
-            
+
             if (success)
             {
                 vesselInfo = PolarService.GetVesselInfo();
@@ -487,20 +493,17 @@
             }
             else
             {
-                controlFileError = "Failed to load control file from embedded resources. Using default parameters.";
+                controlFileError = "Failed to load control file. Using defaults.";
                 SetDefaultParameterBounds();
             }
         }
         catch (Exception ex)
         {
-            controlFileError = $"Error loading control file: {ex.Message}";
+            controlFileError = $"Error: {ex.Message}";
             SetDefaultParameterBounds();
         }
     }
 
-    // ============================================
-    // ✅ NEW METHOD: Add this helper
-    // ============================================
     private void SetDefaultParameterBounds()
     {
         parameterBounds = new ParameterBound
@@ -513,57 +516,6 @@
             Tz_upper = 18.0
         };
     }
-    private void LoadControlFileFromDataFolder()
-    {
-        try
-        {
-            string dataPath = PolarService.GetDataRootPath();
-            string[] possibleNames = { "proll.ctl", "control.txt", "vessel.ctl" };
-            string? controlFilePath = null;
-
-            foreach (var name in possibleNames)
-            {
-                string testPath = System.IO.Path.Combine(dataPath, name);
-                if (System.IO.File.Exists(testPath))
-                {
-                    controlFilePath = testPath;
-                    break;
-                }
-            }
-
-            if (controlFilePath != null)
-            {
-                if (PolarService.LoadControlFile(controlFilePath))
-                {
-                    vesselInfo = PolarService.GetVesselInfo();
-                    representativeDrafts = PolarService.GetRepresentativeDrafts();
-                    parameterBounds = PolarService.GetParameterBounds();
-                    controlFileError = null;
-                }
-                else
-                {
-                    controlFileError = $"Found control file but failed to parse: {System.IO.Path.GetFileName(controlFilePath)}";
-                }
-            }
-            else
-            {
-                controlFileError = "Control file not found in data folder. Using default parameters.";
-                parameterBounds = new ParameterBound
-                {
-                    GM_lower = 0.5,
-                    GM_upper = 5.0,
-                    Hs_lower = 3.0,
-                    Hs_upper = 12.0,
-                    Tz_lower = 5.0,
-                    Tz_upper = 18.0
-                };
-            }
-        }
-        catch (Exception ex)
-        {
-            controlFileError = $"Error loading control file: {ex.Message}";
-        }
-    }
 
     private void OnDisplayModeChanged(ChangeArgs<string> args)
     {
@@ -574,7 +526,7 @@
         }
     }
 
-     private async Task LoadAndRenderData()
+    private async Task LoadAndRenderData()
     {
         isLoading = true;
         errorMessage = null;
@@ -585,8 +537,6 @@
 
         try
         {
-            // OLD: loadResult = PolarService.LoadPolarData(parameters);
-            // NEW: Use async method
             loadResult = await PolarService.LoadPolarDataAsync(parameters);
 
             if (!loadResult.Success)
@@ -621,7 +571,6 @@
 
         maxSpeed = Math.Ceiling(data.Speeds.Max() * 1.1);
 
-        // Create contour series
         if (displayMode == "trafficlight")
         {
             CreateTrafficLightContours(data);
@@ -631,14 +580,12 @@
             CreateContinuousContours(data);
         }
 
-        // Vessel marker
         if (vesselSpeed > 0)
         {
             double vesselAngle = directionMode == "northup" ? vesselHeading : 0;
             vesselMarker.Add(new PolarChartData { Angle = vesselAngle, Speed = vesselSpeed, Roll = 0 });
         }
 
-        // Wave marker
         double waveDisplayAngle = directionMode == "northup" ? waveDirection : (waveDirection - vesselHeading);
         while (waveDisplayAngle < 0) waveDisplayAngle += 360;
         while (waveDisplayAngle >= 360) waveDisplayAngle -= 360;
@@ -651,32 +598,28 @@
         var yellowZone = new ContourSeries { Color = "#f39c12", Opacity = 0.75, MinRoll = maxRollAngle - 5, MaxRoll = maxRollAngle };
         var redZone = new ContourSeries { Color = "#e74c3c", Opacity = 0.75, MinRoll = maxRollAngle, MaxRoll = 999 };
 
-        // Create complete 360° coverage with interpolation
-        int angleStep = 5; // Generate points every 5 degrees
-        
+        int angleStep = 5;
+
         for (int angle = 0; angle < 360; angle += angleStep)
         {
-            // Find or interpolate the boundaries for this angle
             double greenBoundary = InterpolateBoundaryAtAngle(data, angle, greenZone.MaxRoll);
             double yellowBoundary = InterpolateBoundaryAtAngle(data, angle, yellowZone.MaxRoll);
 
             if (greenBoundary > 0)
                 greenZone.Points.Add(new PolarChartData { Angle = angle, Speed = greenBoundary });
-            
+
             if (yellowBoundary > greenBoundary)
                 yellowZone.Points.Add(new PolarChartData { Angle = angle, Speed = yellowBoundary });
-            
-            // Red zone always extends to max speed
+
             redZone.Points.Add(new PolarChartData { Angle = angle, Speed = maxSpeed });
         }
 
-        // Close contours by adding first point at end
         if (greenZone.Points.Count > 0)
             greenZone.Points.Add(new PolarChartData { Angle = 0, Speed = greenZone.Points[0].Speed });
-        
+
         if (yellowZone.Points.Count > 0)
             yellowZone.Points.Add(new PolarChartData { Angle = 0, Speed = yellowZone.Points[0].Speed });
-        
+
         if (redZone.Points.Count > 0)
             redZone.Points.Add(new PolarChartData { Angle = 0, Speed = redZone.Points[0].Speed });
 
@@ -687,7 +630,6 @@
 
     private double InterpolateBoundaryAtAngle(ResponseMatrix data, double targetAngle, double rollThreshold)
     {
-        // Find the two nearest angles in the data
         int nearestIndex1 = -1;
         int nearestIndex2 = -1;
         double minDiff1 = 360;
@@ -696,7 +638,7 @@
         for (int j = 0; j < data.HeadingCount; j++)
         {
             double diff = Math.Abs(data.Headings[j] - targetAngle);
-            if (diff > 180) diff = 360 - diff; // Handle wrapping
+            if (diff > 180) diff = 360 - diff;
 
             if (diff < minDiff1)
             {
@@ -714,15 +656,11 @@
 
         if (nearestIndex1 < 0) return 0;
 
-        // Get boundary at nearest angle
         double boundary1 = FindSpeedBoundary(data, nearestIndex1, rollThreshold);
 
-        // If we have a second nearest angle, interpolate
-        if (nearestIndex2 >= 0 && minDiff1 < 30) // Only interpolate if angles are close
+        if (nearestIndex2 >= 0 && minDiff1 < 30)
         {
             double boundary2 = FindSpeedBoundary(data, nearestIndex2, rollThreshold);
-            
-            // Linear interpolation based on angle difference
             double weight = minDiff1 / (minDiff1 + minDiff2);
             return boundary1 * (1 - weight) + boundary2 * weight;
         }
@@ -739,7 +677,7 @@
             "#ffeb3b", "#ff9800", "#ff5722", "#e64a19", "#d32f2f"
         };
 
-        int angleStep = 5; // Generate points every 5 degrees
+        int angleStep = 5;
 
         for (int band = 0; band < numBands; band++)
         {
@@ -762,7 +700,6 @@
                     series.Points.Add(new PolarChartData { Angle = angle, Speed = boundary });
             }
 
-            // Close contour
             if (series.Points.Count > 0)
                 series.Points.Add(new PolarChartData { Angle = 0, Speed = series.Points[0].Speed });
 
