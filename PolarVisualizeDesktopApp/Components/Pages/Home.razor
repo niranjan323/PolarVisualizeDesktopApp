@@ -3,17 +3,10 @@
 @inject PolarService PolarService
 @inject IJSRuntime JSRuntime
 
-@* @page "/"
-@using PolarVisualizeDesktopApp.Services
-@inject PolarService PolarService
-@inject IJSRuntime JSRuntime
-
 <PageTitle>Polar Response Visualization</PageTitle>
 
 <div class="container-fluid p-3">
-    <!-- Main Application UI (No Setup Screen Needed) -->
     <div class="row">
-        <!-- Left Panel - Controls -->
         <div class="col-md-3 col-lg-2">
             <div class="card bg-dark text-white">
                 <div class="card-header">
@@ -22,13 +15,11 @@
                         @if (vesselInfo != null)
                         {
                             <br />
-                        
                             <small class="text-muted">IMO: @vesselInfo.IMO</small>
                         }
                     </h5>
                 </div>
                 <div class="card-body">
-                    <!-- Draft Selection -->
                     <div class="mb-3">
                         <label class="form-label">Draft Category</label>
                         <select class="form-select form-select-sm" @bind="parameters.Draft">
@@ -46,21 +37,18 @@
                         }
                     </div>
 
-                    <!-- Draft Aft Peak -->
                     <div class="mb-3">
                         <label class="form-label">Draft Aft Peak (m)</label>
                         <input type="number" class="form-control form-control-sm" @bind="parameters.DraftAftPeak"
                                step="0.1" min="0" max="30" />
                     </div>
 
-                    <!-- Draft Fore Peak -->
                     <div class="mb-3">
                         <label class="form-label">Draft Fore Peak (m)</label>
                         <input type="number" class="form-control form-control-sm" @bind="parameters.DraftForePeak"
                                step="0.1" min="0" max="30" />
                     </div>
 
-                    <!-- GM -->
                     <div class="mb-3">
                         <label class="form-label">Metacentric Height, GM (m)</label>
                         <input type="number" class="form-control form-control-sm" @bind="parameters.GM"
@@ -73,7 +61,6 @@
                         }
                     </div>
 
-                    <!-- Heading -->
                     <div class="mb-3">
                         <label class="form-label">Heading (degree)</label>
                         <input type="number" class="form-control form-control-sm" @bind="vesselHeading"
@@ -81,14 +68,12 @@
                         <small class="form-text text-muted">Clockwise from North to Bow</small>
                     </div>
 
-                    <!-- Speed -->
                     <div class="mb-3">
                         <label class="form-label">Speed (kn)</label>
                         <input type="number" class="form-control form-control-sm" @bind="vesselSpeed"
                                step="0.5" min="0" max="30" />
                     </div>
 
-                    <!-- Maximum Roll -->
                     <div class="mb-3">
                         <label class="form-label">Maximum Allowed Roll Angle (degree)</label>
                         <input type="number" class="form-control form-control-sm" @bind="maxRollAngle"
@@ -100,7 +85,6 @@
                     <h5 class="mb-0">Sea State</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Significant Wave Height -->
                     <div class="mb-3">
                         <label class="form-label">Significant Wave Height, Hs (m)</label>
                         <input type="number" class="form-control form-control-sm" @bind="parameters.Hs"
@@ -113,7 +97,6 @@
                         }
                     </div>
 
-                    <!-- Mean Wave Period -->
                     <div class="mb-3">
                         <label class="form-label">Mean Wave Period, Tz (s)</label>
                         <input type="number" class="form-control form-control-sm" @bind="parameters.Tz"
@@ -126,7 +109,6 @@
                         }
                     </div>
 
-                    <!-- Mean Wave Direction -->
                     <div class="mb-3">
                         <label class="form-label">Mean Wave Direction (degree)</label>
                         <input type="number" class="form-control form-control-sm" @bind="waveDirection"
@@ -139,7 +121,6 @@
                     <h5 class="mb-0">Display Options</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Display Mode -->
                     <div class="mb-3">
                         <label class="form-label">Plot Mode</label>
                         <div class="form-check">
@@ -162,7 +143,6 @@
                         </div>
                     </div>
 
-                    <!-- Direction Display -->
                     <div class="mb-3">
                         <label class="form-label">Direction</label>
                         <div class="form-check">
@@ -204,7 +184,6 @@
             </div>
         </div>
 
-        <!-- Center Panel - Chart -->
         <div class="col-md-6 col-lg-7">
             <div class="card bg-dark text-white" style="height: 750px;">
                 <div class="card-body p-2">
@@ -242,7 +221,6 @@
                 </div>
             </div>
 
-            <!-- Case Selector at Bottom -->
             @if (hasData && savedCases.Count > 0)
             {
                 <div class="card bg-dark text-white mt-2">
@@ -273,7 +251,6 @@
             }
         </div>
 
-        <!-- Right Panel - Info -->
         <div class="col-md-3 col-lg-3">
             @if (loadResult != null && loadResult.Success)
             {
@@ -285,7 +262,7 @@
                         <p class="mb-1"><strong>Draft:</strong> @parameters.Draft</p>
                         <p class="mb-1"><strong>GM:</strong> @loadResult.FittedGM.ToString("F1") m</p>
                         <p class="mb-1"><strong>Hs:</strong> @loadResult.FittedHs.ToString("F1") m</p>
-                        <p class="mb-1"><strong>Tz:</strong> @loadResult.FittedTz.ToString("F1") s</p>
+                        <p class="mb-0"><strong>Tz:</strong> @loadResult.FittedTz.ToString("F1") s</p>
                     </div>
                 </div>
             }
@@ -294,21 +271,19 @@
 </div>
 
 @code {
-    // Control file data
     private VesselInfo? vesselInfo = null;
     private RepresentativeDraft? representativeDrafts = null;
     private ParameterBound parameterBounds = new();
     private string? controlFileError = null;
 
-    // Application state
     private PolarLoadParameters parameters = new()
     {
         Draft = "scantling",
         GM = 1.5,
         Hs = 5.5,
         Tz = 7.5,
-        DraftAftPeak = 0.5,
-        DraftForePeak = 0.5
+        DraftAftPeak = 0,
+        DraftForePeak = 0
     };
 
     private double vesselHeading = 5;
@@ -323,7 +298,6 @@
     private string? errorMessage = null;
     private PolarLoadResult? loadResult = null;
 
-    // Case management
     private List<SavedCase> savedCases = new();
     private int currentCaseIndex = 0;
 
@@ -336,74 +310,50 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Automatically load control file on startup
-        LoadControlFileFromDataFolder();
+        await LoadControlFileFromEmbeddedResources();
         await base.OnInitializedAsync();
     }
 
-    /// <summary>
-    /// Automatically load control file from C:\PolarData
-    /// Looks for proll.ctl or control.txt
-    /// </summary>
-    private void LoadControlFileFromDataFolder()
+    private async Task LoadControlFileFromEmbeddedResources()
     {
         try
         {
-            string dataPath = PolarService.GetDataRootPath();
+            bool success = await PolarService.LoadControlFileAsync("proll.ctl");
 
-            // Try multiple common control file names
-            string[] possibleNames = { "proll.ctl", "control.txt", "vessel.ctl" };
-            string? controlFilePath = null;
-
-            foreach (var name in possibleNames)
+            if (success)
             {
-                string testPath = System.IO.Path.Combine(dataPath, name);
-                if (System.IO.File.Exists(testPath))
-                {
-                    controlFilePath = testPath;
-                    break;
-                }
-            }
-
-            if (controlFilePath != null)
-            {
-                // Load the control file
-                if (PolarService.LoadControlFile(controlFilePath))
-                {
-                    vesselInfo = PolarService.GetVesselInfo();
-                    representativeDrafts = PolarService.GetRepresentativeDrafts();
-                    parameterBounds = PolarService.GetParameterBounds();
-
-                    controlFileError = null;
-                    Console.WriteLine($"Control file loaded: {controlFilePath}");
-                    Console.WriteLine($"Vessel IMO: {vesselInfo?.IMO}");
-                    Console.WriteLine($"Drafts - S:{representativeDrafts?.Ts} D:{representativeDrafts?.Td} I:{representativeDrafts?.Ti}");
-                }
-                else
-                {
-                    controlFileError = $"Found control file but failed to parse: {System.IO.Path.GetFileName(controlFilePath)}";
-                }
+                vesselInfo = PolarService.GetVesselInfo();
+                representativeDrafts = PolarService.GetRepresentativeDrafts();
+                parameterBounds = PolarService.GetParameterBounds();
+                controlFileError = null;
+                Console.WriteLine($"Control file loaded from embedded resources");
+                Console.WriteLine($"Vessel IMO: {vesselInfo?.IMO}");
             }
             else
             {
-                controlFileError = "Control file not found in data folder. Using default parameters.";
-                // Set default bounds
-                parameterBounds = new ParameterBound
-                {
-                    GM_lower = 0.5,
-                    GM_upper = 5.0,
-                    Hs_lower = 3.0,
-                    Hs_upper = 12.0,
-                    Tz_lower = 5.0,
-                    Tz_upper = 18.0
-                };
+                controlFileError = "Failed to load control file. Using defaults.";
+                SetDefaultParameterBounds();
             }
         }
         catch (Exception ex)
         {
-            controlFileError = $"Error loading control file: {ex.Message}";
+            controlFileError = $"Error: {ex.Message}";
+            SetDefaultParameterBounds();
             Console.WriteLine($"Control file error: {ex.Message}");
         }
+    }
+
+    private void SetDefaultParameterBounds()
+    {
+        parameterBounds = new ParameterBound
+        {
+            GM_lower = 0.5,
+            GM_upper = 5.0,
+            Hs_lower = 3.0,
+            Hs_upper = 12.0,
+            Tz_lower = 5.0,
+            Tz_upper = 18.0
+        };
     }
 
     private void OnDisplayModeChanged()
@@ -422,7 +372,7 @@
 
         try
         {
-            loadResult = PolarService.LoadPolarData(parameters);
+            loadResult = await PolarService.LoadPolarDataAsync(parameters);
 
             if (!loadResult.Success)
             {
@@ -589,4 +539,4 @@
             await JSRuntime.InvokeVoidAsync("alert", $"Export failed: {ex.Message}");
         }
     }
-} *@
+}
